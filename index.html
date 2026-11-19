@@ -1,0 +1,2733 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Noodle Health Tracker</title>
+
+  <!-- PWA & Mobile Web App Meta -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#F5F5F7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Noodle Tracker">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <style>
+    /* ====================================================================
+       APPLE HEALTH DESIGN SYSTEM - 6 STAGES & BIOMETRICS (LIGHT MODE)
+       ==================================================================== */
+    :root {
+      --bg-canvas: #F5F5F7;
+      --bg-card: #FFFFFF;
+      --bg-card-subtle: #FAFAFC;
+      --text-primary: #1D1D1F;
+      --text-secondary: #86868B;
+      --text-tertiary: #A1A1A6;
+      --border-subtle: rgba(0, 0, 0, 0.06);
+      --border-strong: rgba(0, 0, 0, 0.12);
+      
+      /* Apple System Palette */
+      --apple-blue: #007AFF;
+      --apple-blue-bg: #EBF4FF;
+      --apple-green: #34C759;
+      --apple-green-bg: #E8F8EE;
+      --apple-teal: #30B0C7;
+      --apple-teal-bg: #E8F7FA;
+      --apple-yellow: #FFCC00;
+      --apple-yellow-bg: #FFFDE6;
+      --apple-orange: #FF9500;
+      --apple-orange-bg: #FFF4E5;
+      --apple-red: #FF3B30;
+      --apple-red-bg: #FEECEB;
+      --apple-crimson: #D70015;
+      --apple-crimson-bg: #5A0009;
+      --apple-purple: #AF52DE;
+      --apple-purple-bg: #F5EEFB;
+      
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 14px 34px rgba(0, 0, 0, 0.08);
+      
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      
+      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      line-height: 1.45;
+      padding: clamp(10px, 3vw, 18px);
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 490px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(12px, 3vw, 16px);
+    }
+
+    /* Top Bar */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 2px;
+    }
+
+    .brand-title {
+      font-size: clamp(17px, 4.5vw, 20px);
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-btns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: #FFFFFF; color: var(--text-primary); }
+    .icon-btn:active { transform: scale(0.92); }
+
+    /* ====================================================================
+       TOP-RIGHT HEADER PROFILE CHIP & MODAL BIOMETRICS
+       ==================================================================== */
+    .profile-header-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #F2F2F7;
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 3px 10px 3px 4px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .profile-header-chip:hover {
+      background: #E5E5EA;
+      border-color: #C7C7CC;
+    }
+    .profile-header-chip:active {
+      transform: scale(0.96);
+    }
+    .profile-header-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #E5EBF5 0%, #D8E2F0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      flex-shrink: 0;
+    }
+    .profile-header-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      max-width: 95px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (max-width: 320px) {
+      .profile-header-name { display: none; }
+      .profile-header-chip { padding: 3px; border-radius: 50%; }
+    }
+
+    /* Modal Profile Card */
+    .modal-bio-card {
+      background: #F8F8FA;
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .modal-bio-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #E5EBF5 0%, #D8E2F0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .modal-bio-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .modal-bio-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .modal-bio-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .modal-bio-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+
+    .bio-badge-bmi {
+      font-size: 9.5px;
+      padding: 1.5px 6px;
+      border-radius: 6px;
+      background: var(--apple-blue-bg);
+      color: var(--apple-blue);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* Segmented control dihapus — layout satu halaman penuh */
+
+    .factor-box {
+      background: #FFFFFF;
+      border-radius: 10px;
+      padding: 7px 6px;
+      text-align: center;
+      border: 1px solid var(--border-subtle);
+    }
+    .factor-box.limiting {
+      border-color: var(--apple-blue);
+      background: var(--apple-blue-bg);
+    }
+    .factor-label { font-size: 10px; font-weight: 600; color: var(--text-secondary); }
+    .factor-val   { font-size: 11px; font-weight: 700; color: var(--text-primary); margin-top: 2px; }
+
+    /* Base Card */
+    .apple-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: clamp(14px, 4vw, 20px);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-subtle);
+      position: relative;
+    }
+
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    /* ====================================================================
+       3 JENIS MIE SELECTOR (Clean Apple Segmented Cards)
+       ==================================================================== */
+    .types-grid, .clean-types-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .type-card {
+      border: 1.5px solid var(--border-subtle);
+      background: #F8F8FA;
+      border-radius: 12px;
+      padding: 9px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+    .type-card:hover {
+      background: #F0F0F4;
+    }
+    .type-card.active {
+      border-color: var(--apple-blue);
+      background: #FFFFFF;
+      box-shadow: 0 3px 10px rgba(0, 122, 255, 0.16);
+      transform: translateY(-1px);
+    }
+    .type-card.active .type-label {
+      color: var(--apple-blue);
+    }
+
+    .type-emoji, .type-svg-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .type-svg-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+    }
+    .type-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .type-subtext {
+      display: none; /* Disembunyikan agar tampilan minimalis & bersih */
+    }
+
+    /* Minimal Subtle Hint Row */
+    .type-hint-subtle {
+      background: #F8F8FA;
+      border-radius: 10px;
+      padding: 6px 10px;
+      margin-bottom: 9px;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .type-info-banner {
+      background: #F8F8FA;
+      border-radius: 10px;
+      padding: 6px 10px;
+      margin-bottom: 9px;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .type-info-tag {
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 9.5px;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+
+    .type-hint-text {
+      flex: 1;
+      font-size: 11px;
+      color: #3A3A3C;
+      line-height: 1.35;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Type Pill Badge in Title */
+    .type-pill-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--apple-blue);
+      background: var(--apple-blue-bg);
+      padding: 3px 8px;
+      border-radius: 8px;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    /* ====================================================================
+       PORTION SELECTOR (Segmented Bar) & BIG ROUND ACTION BUTTON
+       ==================================================================== */
+    .portion-picker-wrap {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+    }
+
+    .portion-picker-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .portion-segmented-bar {
+      display: flex;
+      background: #F2F2F7;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 3px;
+      gap: 4px;
+      width: 100%;
+      max-width: 290px;
+      box-sizing: border-box;
+    }
+
+    .portion-segment {
+      flex: 1;
+      padding: 7px 4px;
+      background: transparent;
+      border: none;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: center;
+    }
+
+    .portion-segment:hover {
+      color: var(--text-primary);
+    }
+
+    .portion-segment.active {
+      background: #FFFFFF;
+      color: var(--apple-blue);
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Big Round Button Container */
+    .big-round-btn-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+
+    /* Pulse ring animation */
+    @keyframes btnFloat {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-4px); }
+    }
+
+    @keyframes spinLoading {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .big-round-button {
+      width: 128px;
+      height: 128px;
+      border-radius: 50% !important;
+      background: linear-gradient(135deg, #FF3B30 0%, #FF5A36 48%, #D70015 100%);
+      color: #FFFFFF;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      box-shadow: 0 3px 0 rgba(255, 255, 255, 0.45) inset, 0 14px 36px rgba(225, 30, 20, 0.46), 0 0 0 8px rgba(255, 59, 48, 0.14);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, filter 0.22s ease, opacity 0.2s;
+      user-select: none;
+      position: relative;
+      padding: 0;
+      animation: btnFloat 3.2s ease-in-out infinite;
+    }
+
+    .big-round-button:hover {
+      transform: scale(1.07) translateY(-3px);
+      box-shadow: 0 3px 0 rgba(255, 255, 255, 0.55) inset, 0 20px 48px rgba(225, 30, 20, 0.58), 0 0 0 12px rgba(255, 59, 48, 0.22);
+      filter: brightness(1.06);
+      animation: none;
+    }
+
+    .big-round-button:active {
+      transform: scale(0.93) !important;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 5px 16px rgba(225, 30, 20, 0.38), 0 0 0 4px rgba(255, 59, 48, 0.2);
+      animation: none;
+    }
+
+    .big-round-button.loading {
+      opacity: 0.75;
+      pointer-events: none;
+      animation: none;
+    }
+
+    .big-round-button.loading .big-round-icon {
+      animation: spinLoading 1s linear infinite;
+    }
+
+    .action-button {
+      width: 100%;
+      background: linear-gradient(135deg, #007AFF 0%, #0056D2 100%);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 122, 255, 0.28);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .action-button:hover {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .action-button:active {
+      transform: scale(0.98);
+    }
+
+    .big-round-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+      transition: transform 0.2s;
+    }
+    .big-round-icon svg {
+      width: 42px;
+      height: 42px;
+      stroke: #FFFFFF;
+    }
+
+    .big-round-button:hover .big-round-icon {
+      transform: scale(1.12);
+    }
+
+    .big-round-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      font-family: inherit;
+      color: #FFFFFF;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      transition: opacity 0.2s;
+    }
+
+    .portion-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding: 0 4px;
+    }
+
+    .apple-select {
+      padding: 6px 10px;
+      background: #F2F2F7;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--text-primary);
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Hero Status Card (Boleh Makan Mie Lagi) */
+    .hero-status-card {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F9F9FC 100%);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Recovery Status Banner (Living Body Decay) */
+    .decay-recovery-box {
+      background: #F5F7FA;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .recovery-top-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .recovery-streak-tag {
+      color: var(--apple-green);
+      background: var(--apple-green-bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #E5E5EA;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 6px 0 2px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #34C759, #30B0C7);
+      border-radius: 5px;
+      transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .recovery-subtext {
+      font-size: 11px;
+      color: #3A3A3C;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    /* ====================================================================
+       6-STAGE ANATOMICAL SCANNER ENGINE
+       ==================================================================== */
+    .body-scanner-stage {
+      background: linear-gradient(180deg, #FAFAFD 0%, #EEF1F7 100%);
+      border-radius: var(--radius-md);
+      padding: 18px 12px 14px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .scan-beam {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.8), transparent);
+      box-shadow: 0 0 12px rgba(0, 122, 255, 0.6);
+      animation: laserSweep 3.2s ease-in-out infinite;
+      z-index: 8;
+      pointer-events: none;
+    }
+    @keyframes laserSweep { 0% { top: 4%; opacity: 0; } 15% { opacity: 0.9; } 85% { opacity: 0.9; } 100% { top: 92%; opacity: 0; } }
+
+    .body-canvas-wrap {
+      width: clamp(130px, 36vw, 150px);
+      height: clamp(170px, 45vw, 200px);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .human-svg {
+      width: 100%;
+      height: 100%;
+      transform-origin: center bottom;
+      transition: filter 0.4s ease;
+    }
+
+    /* 6-LEVEL ANIMATION DYNAMICS */
+    /* Level 1: Prime */
+    .lvl-prime .human-svg { animation: calmBreath 4.5s ease-in-out infinite; }
+    .lvl-prime .organ-heart { animation: pulseHeart 1.35s ease-in-out infinite; fill: #34C759; }
+    .lvl-prime .organ-stomach { fill: #34C759; opacity: 0.35; }
+    .lvl-prime .ring-pulse { stroke: #34C759; animation: ringSpread 3.2s ease-out infinite; }
+
+    /* Level 2: Stable */
+    .lvl-stable .human-svg { animation: calmBreath 4.0s ease-in-out infinite; }
+    .lvl-stable .organ-heart { animation: pulseHeart 1.2s ease-in-out infinite; fill: #30B0C7; }
+    .lvl-stable .organ-stomach { fill: #30B0C7; opacity: 0.4; }
+    .lvl-stable .ring-pulse { stroke: #30B0C7; animation: ringSpread 2.8s ease-out infinite; }
+
+    /* Level 3: Caution */
+    .lvl-caution .human-svg { animation: briskBreath 3.0s ease-in-out infinite; }
+    .lvl-caution .organ-heart { animation: pulseHeart 1.0s ease-in-out infinite; fill: #FFCC00; }
+    .lvl-caution .organ-stomach { animation: stomachFaint 2s ease-in-out infinite alternate; fill: #FFCC00; }
+    .lvl-caution .ring-pulse { stroke: #FFCC00; animation: ringSpread 2.4s ease-out infinite; }
+
+    /* Level 4: Warning */
+    .lvl-warning .human-svg { animation: briskBreath 2.2s ease-in-out infinite; }
+    .lvl-warning .organ-heart { animation: pulseHeart 0.85s ease-in-out infinite; fill: #FF9500; filter: drop-shadow(0 0 5px rgba(255, 149, 0, 0.5)); }
+    .lvl-warning .organ-stomach { animation: stomachStrain 1.5s ease-in-out infinite alternate; fill: #FF9500; }
+    .lvl-warning .sweat-particle { opacity: 0.8; animation: sweatDrip 1.8s ease-in infinite; }
+    .lvl-warning .ring-pulse { stroke: #FF9500; animation: ringSpread 2s ease-out infinite; }
+
+    /* Level 5: Danger */
+    .lvl-danger .human-svg { animation: stressShake 1.2s ease-in-out infinite alternate; }
+    .lvl-danger .organ-heart { animation: pulseHeart 0.58s ease-in-out infinite; fill: #FF3B30; filter: drop-shadow(0 0 7px #FF3B30); }
+    .lvl-danger .organ-stomach { animation: stomachStrain 0.8s ease-in-out infinite alternate; fill: #D70015; filter: drop-shadow(0 0 8px #FF3B30); }
+    .lvl-danger .organ-kidney { animation: kidneyAlert 0.8s ease-in-out infinite alternate; fill: #FF453A; }
+    .lvl-danger .sweat-particle { opacity: 1; animation: sweatDrip 1.2s ease-in infinite; }
+    .lvl-danger .ring-pulse { stroke: #FF3B30; animation: ringSpreadFast 1.1s ease-out infinite; }
+
+    /* Level 6: Overload */
+    .lvl-overload .human-svg { animation: stressShake 0.75s ease-in-out infinite alternate; }
+    .lvl-overload .organ-heart { animation: pulseHeart 0.42s ease-in-out infinite; fill: #D70015; filter: drop-shadow(0 0 10px #FF3B30); }
+    .lvl-overload .organ-stomach { animation: stomachStrain 0.5s ease-in-out infinite alternate; fill: #5A0009; filter: drop-shadow(0 0 10px #D70015); }
+    .lvl-overload .organ-kidney { animation: kidneyAlert 0.5s ease-in-out infinite alternate; fill: #FF3B30; filter: drop-shadow(0 0 6px #FF3B30); }
+    .lvl-overload .sweat-particle { opacity: 1; animation: sweatDrip 0.8s ease-in infinite; }
+    .lvl-overload .ring-pulse { stroke: #D70015; animation: ringSpreadFast 0.8s ease-out infinite; }
+
+    @keyframes calmBreath { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.02, 1.025) translateY(-2px); } }
+    @keyframes briskBreath { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.03, 1.04) translateY(-3px); } }
+    @keyframes stressShake { 0% { transform: scale(1) translateY(0) rotate(-0.7deg); } 50% { transform: scale(1.045) translateY(-3px) rotate(0.7deg); } 100% { transform: scale(1) translateY(0) rotate(-0.7deg); } }
+    @keyframes pulseHeart { 0%, 100% { transform: scale(1); opacity: 0.85; } 25% { transform: scale(1.3); opacity: 1; } 50% { transform: scale(1.06); } }
+    @keyframes stomachFaint { 0% { opacity: 0.3; } 100% { opacity: 0.8; } }
+    @keyframes stomachStrain { 0% { opacity: 0.4; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1.26); } }
+    @keyframes kidneyAlert { 0% { opacity: 0.35; } 100% { opacity: 1; } }
+    @keyframes ringSpread { 0% { r: 22; opacity: 0.8; stroke-width: 2.5; } 100% { r: 56; opacity: 0; stroke-width: 0.5; } }
+    @keyframes ringSpreadFast { 0% { r: 18; opacity: 0.95; stroke-width: 3.5; } 100% { r: 64; opacity: 0; stroke-width: 1; } }
+    @keyframes sweatDrip { 0% { transform: translateY(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(18px); opacity: 0; } }
+
+    /* 6 Stage Badges */
+    .badge-stage {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .badge-prime    { background: var(--apple-green-bg); color: var(--apple-green-text); }
+    .badge-stable   { background: var(--apple-teal-bg); color: #00738C; }
+    .badge-caution  { background: var(--apple-yellow-bg); color: #8A7B00; }
+    .badge-warning  { background: var(--apple-orange-bg); color: var(--apple-orange-text); }
+    .badge-danger   { background: var(--apple-red-bg); color: var(--apple-crimson); }
+    .badge-overload { background: #5A0009; color: #FFFFFF; }
+
+    /* Impact Detail Card */
+    .impact-card-detail {
+      width: 100%;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-radius: var(--radius-sm);
+      padding: 12px 13px;
+      margin-top: 12px;
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    .impact-top-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .impact-score-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--apple-blue);
+      background: var(--apple-blue-bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .impact-text-body {
+      font-size: 12px;
+      color: #3A3A3C;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .organ-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .organ-box {
+      background: #F8F8FA;
+      border-radius: 10px;
+      padding: 8px 9px;
+      border: 1px solid var(--border-subtle);
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .organ-box-name {
+      font-size: 9.5px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .organ-box-status {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-top: 2px;
+      word-break: break-word;
+      line-height: 1.25;
+    }
+
+    /* Mobile Responsive Optimizations */
+    @media (max-width: 380px) {
+      .card-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .badge-stage {
+        align-self: flex-start;
+        white-space: normal;
+        word-break: break-word;
+      }
+      .impact-top-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+      .body-canvas-wrap {
+        height: 155px;
+      }
+    }
+
+    /* Action Plan Checklist Cards */
+    .action-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-item-card {
+      border: 1px solid var(--border-subtle);
+      background: #F9F9FB;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .action-item-card:hover {
+      background: #F2F2F7;
+    }
+
+    .action-item-card.completed {
+      background: #F4FAF5;
+      border-color: #34C759;
+    }
+
+    .action-item-card.completed .action-title {
+      text-decoration: line-through;
+      color: #8E8E93;
+    }
+
+    .action-icon-box {
+      font-size: 20px;
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+    }
+
+    .action-content {
+      flex: 1;
+    }
+
+    .action-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--apple-blue);
+      background: var(--apple-blue-bg);
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 3px;
+    }
+
+    .action-badge.badge-urgent {
+      color: #D70015;
+      background: #FEECEB;
+    }
+
+    .action-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      transition: color 0.2s;
+    }
+
+    .action-desc {
+      font-size: 11.5px;
+      color: #48484A;
+      line-height: 1.45;
+      margin-top: 3px;
+    }
+
+    .action-check-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid #D1D1D6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: transparent;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.2s;
+    }
+
+    .action-item-card.completed .action-check-circle {
+      background: #34C759;
+      border-color: #34C759;
+      color: #FFFFFF;
+    }
+
+    /* Calendar */
+    .cal-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .cal-month-name { font-size: clamp(14px, 3.8vw, 16px); font-weight: 700; }
+    .cal-arrow-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: #F0F0F2; color: var(--text-primary); font-size: 13px; font-weight: 700; cursor: pointer; }
+    .cal-week-labels { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 6px; }
+    .cal-week-day { font-size: 11px; font-weight: 600; color: var(--text-tertiary); padding: 4px 0; }
+    .cal-matrix { display: grid; grid-template-columns: repeat(7, 1fr); gap: clamp(4px, 1.5vw, 6px); }
+    .cal-cell { aspect-ratio: 1; border-radius: 10px; background: #F8F8FA; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: clamp(11px, 2.8vw, 13px); font-weight: 500; color: var(--text-primary); cursor: pointer; position: relative; border: 1px solid transparent; }
+    .cal-cell.empty { background: transparent; cursor: default; }
+    .cal-cell.today { border-color: var(--apple-blue); font-weight: 700; }
+    .cal-cell.lvl-1 { background-color: #FFD6D6 !important; color: #9E0000 !important; font-weight: 700; }
+    .cal-cell.lvl-2 { background-color: #FF5C5C !important; color: #FFFFFF !important; font-weight: 700; }
+    .cal-cell.lvl-3 { background-color: var(--apple-crimson) !important; color: #FFFFFF !important; font-weight: 800; }
+    .cell-sub-dot { position: absolute; bottom: 2px; font-size: 8px; font-weight: 700; }
+    .cal-legend-bar { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; }
+    .leg-chip { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text-secondary); }
+    .leg-sq { width: 11px; height: 11px; border-radius: 3px; }
+
+    /* History */
+    .history-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #F9F9FB; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 6px; }
+    .hist-main { display: flex; flex-direction: column; gap: 2px; }
+    .hist-title-text { font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px; }
+    .hist-meta-text { font-size: 11px; color: var(--text-secondary); }
+    .type-pill { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; }
+    .pill-goreng { background: #E5E5EA; color: #1D1D1F; }
+    .pill-kuah   { background: var(--apple-blue-bg); color: var(--apple-blue); }
+    .pill-jumbo  { background: var(--apple-purple-bg); color: var(--apple-purple); }
+    .pill-pedas  { background: var(--apple-red-bg); color: var(--apple-crimson); }
+    .del-btn { border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 14px; padding: 4px; }
+    .del-btn:hover { color: var(--apple-red); }
+
+    /* Modal Sheet */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(4px); z-index: 998; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+    .modal-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%;
+      max-width: 480px;
+      max-height: 88vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border-radius: 24px 24px 0 0;
+      padding: 18px 20px 24px;
+      z-index: 999;
+      box-shadow: var(--shadow-lg);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-backdrop.open .modal-sheet { transform: translateX(-50%) translateY(0); }
+    .sheet-handle { width: 36px; height: 4px; background: #D1D1D6; border-radius: 2px; margin: 0 auto 12px; }
+    .sheet-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .sheet-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+    .sheet-close-btn { background: #F2F2F7; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; }
+    .sheet-close-btn:hover { background: #E5E5EA; color: var(--text-primary); }
+
+    /* Form Fields for Biometrics Sheet */
+    .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+    .form-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+    .form-input { padding: 9px 12px; background: #F5F5F7; border: 1px solid transparent; border-radius: 10px; font-size: 13px; font-family: inherit; color: var(--text-primary); outline: none; }
+    .form-input:focus { background: #FFFFFF; border-color: var(--apple-blue); }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* Retroactive Form for Calendar Modal */
+    .retro-form-card {
+      background: #F8F8FA;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 16px;
+      padding: 13px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .retro-form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .retro-form-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .retro-date-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--apple-blue);
+      background: var(--apple-blue-bg);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .retro-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .retro-field-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    .retro-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .retro-type-btn {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 7px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .retro-type-btn:hover {
+      border-color: #C7C7CC;
+      transform: translateY(-1px);
+    }
+    .retro-type-btn.active {
+      border-color: var(--apple-crimson);
+      background: #FFF5F5;
+      box-shadow: 0 2px 8px rgba(215, 0, 21, 0.14);
+    }
+    .retro-type-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .retro-type-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .retro-type-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .retro-type-btn.active .retro-type-text {
+      color: var(--apple-crimson);
+      font-weight: 700;
+    }
+    .retro-row-2 {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .retro-portion-seg {
+      display: flex;
+      background: #E5E5EA;
+      padding: 2.5px;
+      border-radius: 9px;
+      gap: 2px;
+      height: 34px;
+      box-sizing: border-box;
+      align-items: center;
+    }
+    .retro-portion-btn {
+      flex: 1;
+      height: 100%;
+      border: none;
+      background: transparent;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .retro-portion-btn.active {
+      background: #FFFFFF;
+      color: var(--text-primary);
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+    .retro-time-input {
+      width: 100%;
+      height: 34px;
+      box-sizing: border-box;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 600;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .retro-time-input:focus {
+      border-color: var(--apple-blue);
+    }
+    .retro-submit-btn {
+      width: 100%;
+      border: none;
+      background: linear-gradient(135deg, #FF3B30 0%, #FF5A36 48%, #D70015 100%);
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 11px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(225, 30, 20, 0.26);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      margin-top: 2px;
+    }
+    .retro-submit-btn:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(225, 30, 20, 0.34);
+    }
+    .retro-submit-btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 6px rgba(225, 30, 20, 0.2);
+    }
+    .retro-submit-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .apple-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1D1D1F; color: #FFFFFF; padding: 10px 18px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; }
+    .apple-toast.active { transform: translateX(-50%) translateY(0); opacity: 1; }
+    @keyframes toastSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .toast-spin { animation: toastSpin 1s linear infinite; }
+
+    .page-section { display: flex; flex-direction: column; gap: 14px; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header Navigation -->
+    <header class="header-bar">
+      <div class="brand-title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#FF3B30" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+          <path d="M4 11c0 5 3.5 8 8 8s8-3 8-8H4z"/>
+          <path d="M8 19h8"/>
+          <path d="M7 6c1 1 1 2 0 3"/>
+          <path d="M12 5c1 1.5 1 2.5 0 4"/>
+          <path d="M17 6c1 1 1 2 0 3"/>
+          <path d="M18 4l-4 4"/>
+        </svg>
+        <span>Noodle Tracker</span>
+      </div>
+      <div class="header-btns">
+        <button class="icon-btn" id="btnCloudConfig" onclick="openBackendModal()" title="Koneksi Google Spreadsheet">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            <path d="M12 12v5m-2-2 2 2 2-2"/>
+          </svg>
+        </button>
+        <button class="profile-header-chip" id="btnHeaderProfile" onclick="openProfileModal()" title="Profil Kesehatan">
+          <div class="profile-header-avatar">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M6 20v-1a6 6 0 0 1 12 0v1"/>
+            </svg>
+          </div>
+          <span class="profile-header-name" id="headerUserName">Pengguna</span>
+        </button>
+      </div>
+    </header>
+
+
+    <!-- KONDISI TUBUH REAL-TIME & 3 JENIS MIE -->
+    <div id="sectionOverview" class="page-section">
+
+      <!-- Banner Status Koneksi Google Sheets (Hanya muncul jika belum terhubung di PWA) -->
+      <div id="backendNoticeBanner" style="display:none; background:#EBF4FF; border:1px solid #BFDBFE; border-radius:14px; padding:11px 14px; font-size:12px; color:#1E40AF; line-height:1.45;">
+        <div style="font-weight:700; margin-bottom:2px; display:flex; align-items:center; gap:6px;">
+          <span>Hubungkan ke Google Spreadsheet</span>
+        </div>
+        <div style="color:#3B82F6; font-size:11.5px;">Aplikasi ini berjalan sebagai PWA. Sambungkan ke Web App Apps Script agar data tersimpan di Spreadsheet Anda.</div>
+        <button onclick="openBackendModal()" style="margin-top:7px; background:#007AFF; color:#fff; border:none; padding:5px 12px; border-radius:7px; font-size:11.5px; font-weight:600; cursor:pointer;">Hubungkan Sekarang</button>
+      </div>
+      
+      <!-- 1. Safe-To-Eat Primary Metric Card (Hero Status) -->
+      <section class="apple-card hero-status-card" id="safeToEatBox">
+        <div class="card-title-row" style="margin-bottom:4px; justify-content:center;">
+          <span class="card-title" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Boleh Makan Mie Lagi</span>
+        </div>
+
+        <div style="text-align:center; padding: 4px 0 12px;">
+          <div id="safeToEatCountdown" style="font-size:clamp(26px, 7vw, 32px); font-weight:800; color:var(--apple-blue); letter-spacing:-0.8px; line-height:1.15;">Memuat...</div>
+          <div id="safeToEatReasonLabel" style="font-size:10.5px; color:var(--text-secondary); margin-top:4px; font-weight:500; letter-spacing:-0.1px;"></div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-track">
+          <div class="progress-fill" id="recoveryProgressFill" style="width:100%;"></div>
+        </div>
+      </section>
+
+      <!-- 2. Makan Mie (Ultra Simple & Highlighted Action) -->
+      <section class="apple-card">
+        <div class="card-title-row" style="margin-bottom:10px;">
+          <span class="card-title">Makan Mie</span>
+          <span class="type-pill-badge" id="selectedTypeMeta">±1.070 mg Na</span>
+        </div>
+
+        <!-- 3 Jenis Mie Selector (Clean Segmented) -->
+        <div class="clean-types-grid">
+          <div class="type-card active" id="cardGoreng" onclick="selectType('Goreng')">
+            <span class="type-svg-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="14" rx="8" ry="4"/>
+                <path d="M4 14v1c0 2.2 3.6 4 8 4s8-1.8 8-4v-1"/>
+                <path d="M20 14l3-2"/>
+                <path d="M9 7c1 1 1 2 0 3"/>
+                <path d="M14 6c1 1.5 1 2.5 0 4"/>
+              </svg>
+            </span>
+            <span class="type-label">Goreng</span>
+          </div>
+          <div class="type-card" id="cardKuah" onclick="selectType('Kuah')">
+            <span class="type-svg-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 11c0 4.5 3.6 8 8 8s8-3.5 8-8H4z"/>
+                <path d="M3 11h18"/>
+                <path d="M9 19h6"/>
+                <path d="M8 6c0 1.5 1 2 0 3"/>
+                <path d="M12 5c0 2 1 2.5 0 4"/>
+                <path d="M16 6c0 1.5 1 2 0 3"/>
+              </svg>
+            </span>
+            <span class="type-label">Kuah</span>
+          </div>
+          <div class="type-card" id="cardJumbo" onclick="selectType('Jumbo')">
+            <span class="type-svg-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L4 14h7l-2 8 11-12h-7l2-8z"/>
+              </svg>
+            </span>
+            <span class="type-label">Jumbo</span>
+          </div>
+        </div>
+
+        <!-- Hidden DOM elements to keep JS bindings intact without visual clutter -->
+        <div id="typeInfoBanner" style="display:none;">
+          <span id="typeBannerTag">GORENG</span>
+          <span id="typeBannerDesc"></span>
+        </div>
+
+        <!-- Pilihan Jumlah Bungkus -->
+        <div class="portion-picker-wrap">
+          <div class="portion-picker-label">Jumlah Bungkus</div>
+          <div class="portion-segmented-bar">
+            <button type="button" class="portion-segment active" id="segPortion1" onclick="setPortion(1)">1 Bungkus</button>
+            <button type="button" class="portion-segment" id="segPortion2" onclick="setPortion(2)">2 Bungkus</button>
+            <button type="button" class="portion-segment" id="segPortion3" onclick="setPortion(3)">3 Bungkus</button>
+          </div>
+          <select id="noodlePortion" style="display:none;" title="Jumlah Bungkus">
+            <option value="1" selected>1 Bungkus</option>
+            <option value="2">2 Bungkus</option>
+            <option value="3">3 Bungkus</option>
+          </select>
+        </div>
+
+        <!-- Tombol Bulat Besar (Big Round Action Button) -->
+        <div class="big-round-btn-container">
+          <button class="big-round-button" id="btnLogNoodle" onclick="handleLogNoodle()" title="Makan Mie">
+            <span class="big-round-icon" id="roundBtnIcon">
+              <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 11c0 5 3.5 8 8 8s8-3 8-8H4z"/>
+                <path d="M8 19h8"/>
+                <path d="M7 6c1 1 1 2 0 3"/>
+                <path d="M12 5c1 1.5 1 2.5 0 4"/>
+                <path d="M17 6c1 1 1 2 0 3"/>
+                <path d="M18 4l-4 4"/>
+              </svg>
+            </span>
+            <span class="big-round-label" id="btnText">MAKAN MIE</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 6-Stage Biological Scanner -->
+      <section class="apple-card">
+        <div class="card-title-row">
+          <span class="card-title">Kondisi Tubuh</span>
+          <div class="badge-stage badge-prime" id="stageBadge">
+            <span id="stageBadgeText">Level 1: Prima</span>
+          </div>
+        </div>
+
+        <div class="body-scanner-stage lvl-prime" id="bodyScannerStage">
+          <div class="scan-beam"></div>
+
+          <div class="body-canvas-wrap">
+            <svg class="human-svg" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="bodySkin" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#E5E8F0"/>
+                  <stop offset="100%" stop-color="#CFD6E4"/>
+                </linearGradient>
+              </defs>
+
+              <circle class="ring-pulse" cx="100" cy="94" r="24" fill="none" opacity="0.6"/>
+              <circle class="ring-pulse" cx="100" cy="94" r="38" fill="none" opacity="0.3"/>
+
+              <ellipse cx="100" cy="38" rx="20" ry="24" fill="url(#bodySkin)"/>
+              <path d="M92 60 L92 72 L108 72 L108 60 Z" fill="url(#bodySkin)"/>
+
+              <path d="M58 74 C74 68, 126 68, 142 74 C152 79, 148 105, 144 135 C141 160, 138 180, 130 180 L70 180 C62 180, 59 160, 56 135 C52 105, 48 79, 58 74 Z" fill="url(#bodySkin)"/>
+
+              <path d="M54 78 C42 95, 34 130, 32 170 C30 182, 38 185, 42 174 C46 142, 52 110, 58 92 Z" fill="#CBD2DF"/>
+              <path d="M146 78 C158 95, 166 130, 168 170 C170 182, 162 185, 158 174 C154 142, 148 110, 142 92 Z" fill="#CBD2DF"/>
+
+              <path d="M72 180 L68 260 C67 268, 79 268, 82 260 L88 185 Z" fill="#BCC5D4"/>
+              <path d="M128 180 L132 260 C133 268, 121 268, 118 260 L112 185 Z" fill="#BCC5D4"/>
+
+              <!-- Sweat Particles -->
+              <path class="sweat-particle" d="M126 30 C126 30, 129 35, 129 37 C129 39, 127 40, 126 40 C125 40, 123 39, 123 37 C123 35, 126 30, 126 30 Z" fill="#007AFF" opacity="0"/>
+              <path class="sweat-particle" d="M74 34 C74 34, 76 38, 76 40 C76 42, 75 43, 74 43 C73 43, 72 42, 72 40 C72 38, 74 34, 74 34 Z" fill="#007AFF" opacity="0"/>
+
+              <!-- Organ Heart -->
+              <g transform="translate(108, 92)">
+                <path class="organ-heart" d="M 0, -4 A 5,5 0 0,0 -8,-4 A 5,5 0 0,0 -8,4 L 0,11 L 8,4 A 5,5 0 0,0 8,-4 A 5,5 0 0,0 0,-4 Z" transform-origin="0 3"/>
+              </g>
+
+              <!-- Organ Stomach -->
+              <g transform="translate(97, 125)">
+                <ellipse class="organ-stomach" cx="0" cy="0" rx="14" ry="9" transform="rotate(-15)"/>
+              </g>
+
+              <!-- Organ Kidneys -->
+              <g transform="translate(80, 142)">
+                <ellipse class="organ-kidney" cx="0" cy="0" rx="5" ry="8" fill="#A5B3C8" transform="rotate(-10)"/>
+              </g>
+              <g transform="translate(120, 142)">
+                <ellipse class="organ-kidney" cx="0" cy="0" rx="5" ry="8" fill="#A5B3C8" transform="rotate(10)"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Impact Card -->
+          <div class="impact-card-detail">
+            <div class="impact-top-meta">
+              <span style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--text-primary);" id="healthStatusTitle">Level 1: Prima</span>
+              <span class="impact-score-tag" id="scoreTag">Skor: 100/100</span>
+            </div>
+            <p class="impact-text-body" id="impactBodyText">
+              Sedang menganalisis respon organ terhadap pola konsumsi natrium...
+            </p>
+            <div class="organ-grid">
+              <div class="organ-box">
+                <div class="organ-box-name">Kardiovaskular</div>
+                <div class="organ-box-status" id="statHeart">-</div>
+              </div>
+              <div class="organ-box">
+                <div class="organ-box-name">Filtrasi Ginjal</div>
+                <div class="organ-box-status" id="statKidney">-</div>
+              </div>
+              <div class="organ-box">
+                <div class="organ-box-name">Mukosa Lambung</div>
+                <div class="organ-box-status" id="statStomach">-</div>
+              </div>
+              <div class="organ-box">
+                <div class="organ-box-name">Sisa Natrium Aktif</div>
+                <div class="organ-box-status" id="statSodium">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEDICATED ACTION PLAN: TINDAKAN & SOLUSI PENANGANAN -->
+      <section class="apple-card" id="actionPlanCard">
+        <div class="card-title-row">
+          <span class="card-title">Tindakan & Solusi Penanganan</span>
+          <span style="font-size:11px; font-weight:700; color:var(--apple-blue);" id="actionPlanProgress">0/5 Selesai</span>
+        </div>
+
+        <!-- Emergency Alert Banner (Only active on Level 5 & 6) -->
+        <div id="emergencyNoticeBox" style="display:none; background:#FEECEB; border:1px solid #FF3B30; border-radius:12px; padding:11px 13px; margin-bottom:12px; font-size:11.5px; color:#D70015; line-height:1.45;">
+          <strong>Beban Organ Kritis!</strong> Hindari konsumsi garam tambahan, camilan asin, dan kopi berkafein hari ini. Jika mengalami pusing berputar, dada berdebar kencang, atau perut kembung mengeras, segera istirahat.
+        </div>
+
+        <!-- Action Items List -->
+        <div class="action-items-list" id="actionItemsList">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+    </div>
+
+    <!-- KALENDER HEATMAP -->
+    <div id="sectionCalendar" class="page-section">
+      <section class="apple-card">
+        <div class="cal-controls">
+          <div class="cal-month-name" id="calMonthDisplay">Bulan Ini</div>
+          <div style="display:flex; gap:4px;">
+            <button class="cal-arrow-btn" onclick="navMonth(-1)" title="Sebelumnya">‹</button>
+            <button class="cal-arrow-btn" onclick="navMonth(1)" title="Berikutnya">›</button>
+          </div>
+        </div>
+
+        <div class="cal-week-labels">
+          <div class="cal-week-day">Min</div>
+          <div class="cal-week-day">Sen</div>
+          <div class="cal-week-day">Sel</div>
+          <div class="cal-week-day">Rab</div>
+          <div class="cal-week-day">Kam</div>
+          <div class="cal-week-day">Jum</div>
+          <div class="cal-week-day">Sab</div>
+        </div>
+
+        <div class="cal-matrix" id="calMatrix"></div>
+
+        <div class="cal-legend-bar">
+          <div class="leg-chip"><div class="leg-sq" style="background:#F8F8FA; border:1px solid #E5E5EA;"></div><span>0x</span></div>
+          <div class="leg-chip"><div class="leg-sq" style="background:#FFD6D6;"></div><span>1x (Mulai)</span></div>
+          <div class="leg-chip"><div class="leg-sq" style="background:#FF5C5C;"></div><span>2x (Sering)</span></div>
+          <div class="leg-chip"><div class="leg-sq" style="background:#D70015;"></div><span>3x+ (Kritis)</span></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIWAYAT AKTIVITAS -->
+    <div id="sectionHistory" class="page-section">
+      <section class="apple-card">
+        <div class="card-title-row">
+          <span class="card-title">Riwayat Catatan</span>
+          <span style="font-size:11px; color:var(--text-secondary);" id="histCountLabel">0 Catatan</span>
+        </div>
+        <div id="historyContainer">
+          <div style="text-align:center; padding:20px; color:var(--text-secondary); font-size:12px;">Memuat riwayat...</div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <!-- Apple Modal Sheet for Profile Biometrics Editing -->
+  <div class="modal-backdrop" id="profileModalBackdrop" onclick="closeProfileModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">Profil Biometrik Anda</div>
+        <button class="sheet-close-btn" onclick="closeProfileModal()">✕</button>
+      </div>
+
+      <!-- User Profile Summary inside Modal Sheet -->
+      <div class="modal-bio-card">
+        <div class="modal-bio-avatar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M6 20v-1a6 6 0 0 1 12 0v1"/>
+          </svg>
+        </div>
+        <div class="modal-bio-info">
+          <div class="modal-bio-name-row">
+            <span class="modal-bio-name" id="stripUserName">Pengguna</span>
+            <span class="bio-badge-bmi" id="stripBmiMeta">BMI 22.5 Normal</span>
+          </div>
+          <div class="modal-bio-meta" id="stripUserMeta">25 th • 65 kg • 170 cm (Pria)</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nama / Panggilan</label>
+        <input type="text" id="profName" class="form-input" placeholder="Nama Anda" value="Pengguna">
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">Umur (Tahun)</label>
+          <input type="number" id="profAge" class="form-input" value="25" min="10" max="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jenis Kelamin</label>
+          <select id="profGender" class="form-input" style="cursor:pointer;">
+            <option value="Pria">Pria</option>
+            <option value="Wanita">Wanita</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">Berat Badan (kg)</label>
+          <input type="number" id="profWeight" class="form-input" value="65" min="30" max="250" oninput="calculateLiveBmi()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tinggi Badan (cm)</label>
+          <input type="number" id="profHeight" class="form-input" value="170" min="100" max="250" oninput="calculateLiveBmi()">
+        </div>
+      </div>
+
+      <!-- Live BMI Preview Card -->
+      <div style="background:#F2F2F7; border-radius:12px; padding:10px 12px; margin:8px 0 16px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Indeks Massa Tubuh (BMI):</span>
+        <span style="font-weight:700; color:var(--apple-blue);" id="liveBmiPreview">22.5 • Normal Ideal</span>
+      </div>
+
+      <button class="action-button" style="padding:12px 14px; font-size:14px;" onclick="handleSaveProfile()">
+        Simpan Profil Kesehatan
+      </button>
+    </div>
+  </div>
+
+  <!-- Apple Modal Sheet for Date Details & Retroactive Log -->
+  <div class="modal-backdrop" id="dateModalBackdrop" onclick="closeDateModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div>
+          <div class="sheet-title" id="sheetDateTitle">Tanggal</div>
+          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Riwayat & Catat Makan Mie</div>
+        </div>
+        <button class="sheet-close-btn" onclick="closeDateModal()" title="Tutup">✕</button>
+      </div>
+
+      <!-- Riwayat di Tanggal Terpilih -->
+      <div style="margin-bottom: 8px;">
+        <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;" id="sheetContentHeading">
+          CATATAN PADA TANGGAL INI
+        </div>
+        <div id="sheetContent" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+
+      <!-- Form Tambah Catatan Mie Retroaktif -->
+      <div class="retro-form-card">
+        <div class="retro-form-header">
+          <span class="retro-form-title">Catat Makan Mie</span>
+          <span class="retro-date-tag" id="retroDateTag">Tanggal</span>
+        </div>
+
+        <!-- Pilih Jenis Mie -->
+        <div class="retro-field-group">
+          <label class="retro-field-label">PILIH JENIS MIE</label>
+          <div class="retro-type-grid" id="retroTypeGrid">
+            <button type="button" class="retro-type-btn active" data-type="Goreng" onclick="selectRetroType('Goreng')">
+              <span class="retro-type-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="14" rx="8" ry="4"/>
+                  <path d="M4 14v1c0 2.2 3.6 4 8 4s8-1.8 8-4v-1"/>
+                  <path d="M20 14l3-2"/>
+                  <path d="M9 7c1 1 1 2 0 3"/>
+                  <path d="M14 6c1 1.5 1 2.5 0 4"/>
+                </svg>
+              </span>
+              <span class="retro-type-text">Goreng</span>
+            </button>
+            <button type="button" class="retro-type-btn" data-type="Kuah" onclick="selectRetroType('Kuah')">
+              <span class="retro-type-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 11c0 4.5 3.6 8 8 8s8-3.5 8-8H4z"/>
+                  <path d="M3 11h18"/>
+                  <path d="M9 19h6"/>
+                  <path d="M8 6c0 1.5 1 2 0 3"/>
+                  <path d="M12 5c0 2 1 2.5 0 4"/>
+                  <path d="M16 6c0 1.5 1 2 0 3"/>
+                </svg>
+              </span>
+              <span class="retro-type-text">Kuah</span>
+            </button>
+            <button type="button" class="retro-type-btn" data-type="Jumbo" onclick="selectRetroType('Jumbo')">
+              <span class="retro-type-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2L4 14h7l-2 8 11-12h-7l2-8z"/>
+                </svg>
+              </span>
+              <span class="retro-type-text">Jumbo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Porsi & Jam Makan -->
+        <div class="retro-row-2">
+          <div class="retro-field-group">
+            <label class="retro-field-label">JUMLAH BUNGKUS</label>
+            <div class="retro-portion-seg">
+              <button type="button" class="retro-portion-btn active" data-portion="1" onclick="selectRetroPortion(1)">1</button>
+              <button type="button" class="retro-portion-btn" data-portion="2" onclick="selectRetroPortion(2)">2</button>
+              <button type="button" class="retro-portion-btn" data-portion="3" onclick="selectRetroPortion(3)">3</button>
+            </div>
+          </div>
+
+          <div class="retro-field-group">
+            <label class="retro-field-label">JAM MAKAN (WITA)</label>
+            <input type="time" id="retroTimeInput" class="retro-time-input" value="12:30">
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button type="button" class="retro-submit-btn" id="btnSaveRetro" onclick="handleSaveRetroactive()">
+          <span id="btnSaveRetroText">Simpan Makan Mie di Tanggal Ini</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Apple Modal Sheet for Google Apps Script Backend Connection -->
+  <div class="modal-backdrop" id="backendModalBackdrop" onclick="closeBackendModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">Koneksi Spreadsheet Google</div>
+        <button class="sheet-close-btn" onclick="closeBackendModal()">✕</button>
+      </div>
+
+      <div style="background:#F2F2F7; border-radius:12px; padding:12px 14px; margin-bottom:14px; font-size:12px; line-height:1.5; color:var(--text-secondary);">
+        Hubungkan PWA ini dengan Google Spreadsheet Anda melalui Web App Google Apps Script. Data konsumsi & profil akan otomatis tersinkronisasi.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Google Apps Script Web App URL</label>
+        <input type="url" id="backendUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
+        <span style="font-size:10.5px; color:var(--text-tertiary); margin-top:4px; display:block;">
+          Didapat dari: <em>Deploy &gt; New Deployment &gt; Web App &gt; Who has access: Anyone</em>
+        </span>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="action-button" style="flex:1; padding:11px 14px;" onclick="handleSaveBackendUrl()">
+          Simpan & Uji Koneksi
+        </button>
+        <button class="action-button" style="background:#E5E5EA; color:var(--text-primary); box-shadow:none; width:auto; padding:11px 14px;" onclick="handleResetBackendUrl()">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Apple Toast -->
+  <div class="apple-toast" id="toast">
+    <span id="toastIcon" style="display:flex; align-items:center;">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </span>
+    <span id="toastMsg">Tercatat!</span>
+  </div>
+
+  <script>
+    let currentDate = new Date();
+    let currentStore = null;
+    let selectedDateForSheet = null;
+    let selectedType = 'Goreng';
+    let selectedRetroType = 'Goreng';
+    let selectedRetroPortion = 1;
+    let _autoRefreshTimer = null;
+
+    const TYPE_META = {
+      'Goreng': {
+        name: 'Goreng',
+        badgeClass: 'pill-goreng',
+        meta: '±1.070 mg Na • 380 kkal',
+        desc: 'Tinggi lemak jenuh & minyak bumbu; dicerna lebih lambat oleh lambung.'
+      },
+      'Kuah': {
+        name: 'Kuah',
+        badgeClass: 'pill-kuah',
+        meta: '±1.450 mg Na • 330 kkal',
+        desc: 'Ekstra natrium kuah asin; cepat diserap dan memicu lonjakan tekanan darah.'
+      },
+      'Jumbo': {
+        name: 'Jumbo',
+        badgeClass: 'pill-jumbo',
+        meta: '±1.340 mg Na • 570 kkal',
+        desc: 'Beban ganda karbohidrat & natrium mendekati 67% batas harian WHO.'
+      },
+      'Pedas': {
+        name: 'Pedas',
+        badgeClass: 'pill-pedas',
+        meta: '±1.250 mg Na • 390 kkal',
+        desc: 'Varian arsip lama untuk histori catatan.'
+      }
+    };
+
+    const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+    /**
+     * UNIFIED API CLIENT
+     * Otomatis mendeteksi lingkungan:
+     * - Jika di dalam Google Apps Script: Menggunakan google.script.run
+     * - Jika di-deploy sebagai PWA di GitHub Pages: Menggunakan REST API fetch() ke Apps Script Web App
+     */
+    const ApiClient = {
+      getApiUrl() {
+        return localStorage.getItem('NOODLE_API_URL') || '';
+      },
+      setApiUrl(url) {
+        if (url) localStorage.setItem('NOODLE_API_URL', url.trim());
+        else localStorage.removeItem('NOODLE_API_URL');
+      },
+      isGasEnvironment() {
+        return typeof google !== 'undefined' && Boolean(google.script) && Boolean(google.script.run);
+      },
+      hasBackend() {
+        return this.isGasEnvironment() || Boolean(this.getApiUrl());
+      },
+      async request(action, payload = {}) {
+        if (this.isGasEnvironment()) {
+          return new Promise((resolve, reject) => {
+            const runner = google.script.run
+              .withSuccessHandler(res => resolve(res))
+              .withFailureHandler(err => reject(err));
+
+            if (action === 'get_data' || action === 'getData') runner.getNoodleData(payload.year, payload.month);
+            else if (action === 'log') runner.logNoodleEat(payload.type, payload.portions);
+            else if (action === 'log_manual') runner.logNoodleManual(payload.date, payload.time, payload.type, payload.portions);
+            else if (action === 'delete') runner.deleteNoodleLog(payload.id);
+            else if (action === 'save_profile') runner.saveUserProfile(payload.profile);
+            else reject(new Error('Unknown action: ' + action));
+          });
+        }
+
+        const apiUrl = this.getApiUrl();
+        if (!apiUrl) {
+          throw new Error('BACKEND_NOT_CONFIGURED');
+        }
+
+        // POST request tanpa custom header Content-Type agar menghindari OPTIONS preflight CORS di Google Apps Script
+        const bodyStr = JSON.stringify({ action, ...payload });
+        const resp = await fetch(apiUrl, {
+          method: 'POST',
+          body: bodyStr,
+          redirect: 'follow'
+        });
+
+        if (!resp.ok) {
+          throw new Error(`HTTP Error ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        return data;
+      }
+    };
+
+    // Registrasi PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('SW registration skipped:', err);
+        });
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkBackendNotice();
+      loadAllData();
+
+      // Auto-tick tiap 60 detik: recalculate decay lokal & countdown tanpa reload server
+      _autoRefreshTimer = setInterval(() => {
+        if (!currentStore || !currentStore.healthStatus) return;
+        const h = currentStore.healthStatus;
+        if ((!h.safeToEatHours || h.safeToEatHours <= 0) && (!h.activeSodiumLoad || h.activeSodiumLoad <= 350)) return;
+
+        // Kurangi jam tunggu mundur per menit (1/60 jam)
+        if (typeof h.hoursToPrime === 'number' && h.hoursToPrime > 0) {
+          h.hoursToPrime = Math.max(0, h.hoursToPrime - (1 / 60));
+        }
+        if (typeof h.hoursFromDecay === 'number' && h.hoursFromDecay > 0) {
+          h.hoursFromDecay = Math.max(0, h.hoursFromDecay - (1 / 60));
+        }
+        if (typeof h.hoursFromWeekly === 'number' && h.hoursFromWeekly > 0) {
+          h.hoursFromWeekly = Math.max(0, h.hoursFromWeekly - (1 / 60));
+        }
+        if (typeof h.hoursFromMonthly === 'number' && h.hoursFromMonthly > 0) {
+          h.hoursFromMonthly = Math.max(0, h.hoursFromMonthly - (1 / 60));
+        }
+        h.safeToEatHours = Math.max(0, Math.max(h.hoursFromDecay || 0, h.hoursFromWeekly || 0, h.hoursFromMonthly || 0));
+        if (h.safeToEatHours > 0) {
+          if (h.safeToEatHours === h.hoursFromMonthly) h.safeToEatReason = 'bulanan';
+          else if (h.safeToEatHours === h.hoursFromWeekly) h.safeToEatReason = 'mingguan';
+          else h.safeToEatReason = 'sodium';
+        } else {
+          h.safeToEatReason = 'aman';
+        }
+
+        // Eksponensial decay natrium per menit: half-life 28 jam
+        if (h.activeSodiumLoad > 0) {
+          const decayPerMin = Math.pow(0.5, (1 / 60) / 28);
+          h.activeSodiumLoad = Math.max(0, Math.round(h.activeSodiumLoad * decayPerMin));
+        }
+
+        // Tambah cleanHours
+        if (typeof h.cleanHours === 'number') {
+          h.cleanHours = +(h.cleanHours + 1 / 60).toFixed(3);
+          h.cleanDays = Math.floor(h.cleanHours / 24);
+        }
+        renderRecoveryProgress(h);
+      }, 60000);
+    });
+
+    function setPortion(num) {
+      const select = document.getElementById('noodlePortion');
+      if (select) select.value = String(num);
+      [1, 2, 3].forEach(n => {
+        const seg = document.getElementById('segPortion' + n);
+        if (seg) seg.classList.toggle('active', n === num);
+      });
+    }
+
+    function selectType(typeName) {
+      selectedType = typeName;
+      ['Goreng', 'Kuah', 'Jumbo'].forEach(t => {
+        const el = document.getElementById('card' + t);
+        if (el) el.classList.toggle('active', t === typeName);
+      });
+
+      const meta = TYPE_META[typeName];
+      if (meta) {
+        document.getElementById('selectedTypeMeta').innerText = meta.meta;
+        const tag = document.getElementById('typeBannerTag');
+        if (tag) {
+          tag.innerText = meta.name.toUpperCase();
+          tag.className = 'type-info-tag ' + meta.badgeClass;
+        }
+        const desc = document.getElementById('typeBannerDesc');
+        if (desc) desc.innerText = meta.desc;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    async function loadAllData() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const calTitle = document.getElementById('calMonthDisplay');
+      if (calTitle) calTitle.innerText = `${MONTHS[month - 1]} ${year}`;
+
+      try {
+        const res = await ApiClient.request('get_data', { year, month });
+        if (res && res.success) {
+          currentStore = res;
+          renderApp(res);
+        } else {
+          showToast(res ? res.message : 'Gagal memuat data', 'alert');
+          if (res && res.data) renderApp(res.data);
+          else renderMockData(year, month);
+        }
+      } catch (err) {
+        if (err && err.message === 'BACKEND_NOT_CONFIGURED') {
+          checkBackendNotice();
+          renderMockData(year, month);
+        } else {
+          console.error('Error memuat data:', err);
+          showToast('Koneksi spreadsheet offline. Menampilkan data lokal.', 'alert');
+          renderMockData(year, month);
+        }
+      }
+    }
+
+    async function handleLogNoodle() {
+      const btn = document.getElementById('btnLogNoodle');
+      const btnText = document.getElementById('btnText');
+      const portions = Number(document.getElementById('noodlePortion').value) || 1;
+
+      btn.classList.add('loading');
+      btnText.innerText = 'MENCATAT...';
+
+      try {
+        const res = await ApiClient.request('log', { type: selectedType, portions });
+        btn.classList.remove('loading');
+        btnText.innerText = 'MAKAN MIE';
+
+        if (res && res.success) {
+          showToast(res.message || 'Catatan berhasil disimpan', 'check');
+          if (res.data) renderApp(res.data);
+          else loadAllData();
+        } else {
+          showToast(res ? res.message : 'Gagal mencatat', 'alert');
+        }
+      } catch (err) {
+        btn.classList.remove('loading');
+        btnText.innerText = 'MAKAN MIE';
+        if (err && err.message === 'BACKEND_NOT_CONFIGURED') {
+          openBackendModal();
+          showToast('Silakan hubungkan Google Spreadsheet Anda', 'alert');
+        } else {
+          console.error('Error logging noodle:', err);
+          showToast('Gagal terhubung ke spreadsheet: ' + err.message, 'error');
+        }
+      }
+    }
+
+    function renderApp(data) {
+      if (!data) return;
+      currentStore = data;
+
+      // 1. Profil Biometrik
+      try {
+        if (data.profile) {
+          const p = data.profile;
+          const headerName = document.getElementById('headerUserName');
+          const headerBtn = document.getElementById('btnHeaderProfile');
+          if (headerName) headerName.innerText = p.name || 'Pengguna';
+          if (headerBtn) headerBtn.title = `Profil: ${p.name || 'Pengguna'} • BMI ${p.bmi || 22.5} (${p.bmiCategory || 'Normal'})`;
+
+          const userNameEl = document.getElementById('stripUserName');
+          const userMeta = document.getElementById('stripUserMeta');
+          const bmiMeta = document.getElementById('stripBmiMeta');
+          if (userNameEl) userNameEl.innerText = p.name || 'Pengguna';
+          if (userMeta) userMeta.innerText = `${p.age || 25} th • ${p.weight || 65} kg • ${p.height || 170} cm (${p.gender || 'Pria'})`;
+          if (bmiMeta) bmiMeta.innerText = `BMI ${p.bmi || 22.5} ${p.bmiCategory || 'Normal'}`;
+          
+          const profName = document.getElementById('profName');
+          if (profName) profName.value = p.name || 'Pengguna';
+          const profAge = document.getElementById('profAge');
+          if (profAge) profAge.value = p.age || 25;
+          const profGender = document.getElementById('profGender');
+          if (profGender) profGender.value = p.gender || 'Pria';
+          const profWeight = document.getElementById('profWeight');
+          if (profWeight) profWeight.value = p.weight || 65;
+          const profHeight = document.getElementById('profHeight');
+          if (profHeight) profHeight.value = p.height || 170;
+          calculateLiveBmi();
+        }
+      } catch (errProfile) {
+        console.error('Error render profile:', errProfile);
+      }
+
+      // 2. Real-Time Biological Recovery Progress
+      try {
+        if (data.healthStatus) renderRecoveryProgress(data.healthStatus);
+      } catch (errRecovery) {
+        console.error('Error render recovery progress:', errRecovery);
+      }
+
+      // 3. 6-Stage Biological Scanner
+      try {
+        if (data.healthStatus) renderScannerStage(data.healthStatus);
+      } catch (errScanner) {
+        console.error('Error render scanner stage:', errScanner);
+      }
+
+      // 4. Tindakan & Solusi Penanganan
+      try {
+        if (data.healthStatus) renderActionPlan(data.healthStatus);
+      } catch (errPlan) {
+        console.error('Error render action plan:', errPlan);
+      }
+
+      // 5. Calendar Matrix Heatmap
+      try {
+        const yr = data.currentYear || currentDate.getFullYear();
+        const mo = data.currentMonth || (currentDate.getMonth() + 1);
+        renderCalendarMatrix(yr, mo, data.dailyCounts || {});
+      } catch (errCal) {
+        console.error('Error render calendar matrix:', errCal);
+      }
+
+      // 6. History List
+      try {
+        renderHistoryList(data.recentLogs || []);
+      } catch (errHist) {
+        console.error('Error render history list:', errHist);
+      }
+    }
+
+    let completedActionIds = new Set();
+
+    function getActionSvg(act) {
+      const id = (act && act.id) || '';
+      if (id === 'act-water') {
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
+      }
+      if (id === 'act-potassium') {
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#FF9500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M8 12h8"/></svg>`;
+      }
+      if (id === 'act-stomach') {
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#34C759" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+      }
+      if (id === 'act-walk') {
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#AF52DE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M9 20l3-6 3 2 3 4M6 16l4-3 2 2 3-5"/></svg>`;
+      }
+      if (id === 'act-rest') {
+        return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#FF3B30" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>`;
+      }
+      return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#34C759" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/></svg>`;
+    }
+
+    function renderActionPlan(health) {
+      const listEl = document.getElementById('actionItemsList');
+      const alertBox = document.getElementById('emergencyNoticeBox');
+      const progressLabel = document.getElementById('actionPlanProgress');
+
+      if (health.stageLevel >= 5) {
+        alertBox.style.display = 'block';
+      } else {
+        alertBox.style.display = 'none';
+      }
+
+      const actions = health.actionPlan || [];
+      if (actions.length === 0) {
+        listEl.innerHTML = `
+          <div style="text-align:center; padding:15px; color:var(--text-secondary); font-size:12px;">
+            Tubuh dalam kondisi prima. Tidak ada tindakan pemulihan darurat yang diperlukan.
+          </div>`;
+        progressLabel.innerText = 'Semua Aman';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      let doneCount = 0;
+
+      actions.forEach((act, idx) => {
+        const actId = act.id || ('act-' + idx);
+        const isDone = completedActionIds.has(actId);
+        if (isDone) doneCount++;
+
+        const card = document.createElement('div');
+        card.className = 'action-item-card' + (isDone ? ' completed' : '');
+        card.onclick = () => toggleActionCompleted(actId);
+
+        const isUrgent = act.badge && (act.badge.includes('Prioritas') || act.badge.includes('Darurat') || act.badge.includes('Kritis'));
+
+        card.innerHTML = `
+          <div class="action-icon-box">${getActionSvg(act)}</div>
+          <div class="action-content">
+            <span class="action-badge ${isUrgent ? 'badge-urgent' : ''}">${escapeHtml(act.badge || 'Tindakan')}</span>
+            <div class="action-title">${escapeHtml(act.title)}</div>
+            <div class="action-desc">${escapeHtml(act.desc)}</div>
+          </div>
+          <div class="action-check-circle">${isDone ? '✓' : ''}</div>
+        `;
+        listEl.appendChild(card);
+      });
+
+      progressLabel.innerText = `${doneCount}/${actions.length} Selesai`;
+    }
+
+    function toggleActionCompleted(actId) {
+      if (completedActionIds.has(actId)) {
+        completedActionIds.delete(actId);
+      } else {
+        completedActionIds.add(actId);
+        showToast('Langkah pemulihan selesai!', 'check');
+      }
+      if (currentStore && currentStore.healthStatus) {
+        renderActionPlan(currentStore.healthStatus);
+      }
+    }
+
+    function renderRecoveryProgress(health) {
+      const cleanHours     = health.cleanHours || 0;
+      const cleanDays      = Math.floor(cleanHours / 24);
+      const remHour        = Math.floor(cleanHours % 24);
+      const activeNa       = health.activeSodiumLoad || 0;
+      const safeToEatHours = health.safeToEatHours || 0;
+      const reason         = health.safeToEatReason || 'aman';
+      const hDecay         = health.hoursFromDecay   || 0;
+      const hWeekly        = health.hoursFromWeekly  || 0;
+      const hMonthly       = health.hoursFromMonthly || 0;
+      const weeklyCount    = health.weeklyCount  || 0;
+      const monthlyCount   = health.monthlyCount || 0;
+
+      // ── Helper: jam float → "X hari Y jam Z menit" ───────────────────
+      function fmtHoursFull(h) {
+        if (h <= 0) return 'Sekarang';
+        const totalMins = Math.round(h * 60);
+        const d = Math.floor(totalMins / 1440);
+        const hh = Math.floor((totalMins % 1440) / 60);
+        const mm = totalMins % 60;
+        const parts = [];
+        if (d  > 0) parts.push(`${d} hari`);
+        if (hh > 0) parts.push(`${hh} jam`);
+        if (mm > 0) parts.push(`${mm} menit`);
+        return parts.length > 0 ? parts.join(' ') : 'sebentar lagi';
+      }
+
+      // ── Headline utama countdown ──────────────────────────────────────
+      const ctdEl = document.getElementById('safeToEatCountdown');
+      const reaEl = document.getElementById('safeToEatReasonLabel');
+      if (safeToEatHours <= 0) {
+        ctdEl.textContent = 'Boleh Makan Sekarang';
+        ctdEl.style.color = 'var(--apple-green)';
+        reaEl.textContent = 'Semua faktor (natrium, mingguan, bulanan) dalam batas aman.';
+      } else {
+        ctdEl.textContent = fmtHoursFull(safeToEatHours);
+        ctdEl.style.color = safeToEatHours > 48 ? 'var(--apple-crimson)' : 'var(--apple-blue)';
+        const reasonMap = {
+          'sodium'  : `Dibatasi sisa natrium aktif (±${activeNa.toLocaleString('id-ID')} mg)`,
+          'mingguan': `Dibatasi kuota mingguan — sudah ${weeklyCount}x dalam 7 hari (maks 2x)`,
+          'bulanan' : `Dibatasi kuota bulanan — sudah ${monthlyCount}x dalam 30 hari (maks 8x)`,
+        };
+        reaEl.textContent = reasonMap[reason] || '';
+      }
+
+      // ── Progress bar (100% = boleh makan sekarang) ────────────────────
+      const barPct = safeToEatHours <= 0 ? 100 :
+        Math.max(2, Math.min(97, Math.round(100 * (1 - safeToEatHours / (safeToEatHours + 32)))));
+
+      const fill = document.getElementById('recoveryProgressFill');
+      fill.style.width = `${barPct}%`;
+      if (barPct >= 90)      fill.style.background = 'linear-gradient(90deg,#34C759,#30B0C7)';
+      else if (barPct >= 60) fill.style.background = 'linear-gradient(90deg,#FFD60A,#FF9F0A)';
+      else if (barPct >= 35) fill.style.background = 'linear-gradient(90deg,#FF9F0A,#FF6B00)';
+      else                   fill.style.background = 'linear-gradient(90deg,#FF453A,#D70015)';
+    }
+
+    function renderScannerStage(health) {
+      const stage = document.getElementById('bodyScannerStage');
+      const badge = document.getElementById('stageBadge');
+      const badgeText = document.getElementById('stageBadgeText');
+
+      // Reset classes
+      stage.className = 'body-scanner-stage';
+      badge.className = 'badge-stage';
+
+      const cond = health.condition || 'prime'; // 'prime', 'stable', 'caution', 'warning', 'danger', 'overload'
+      stage.classList.add('lvl-' + cond);
+      badge.classList.add('badge-' + cond);
+
+      badgeText.innerText = health.title;
+      document.getElementById('healthStatusTitle').innerText = health.title;
+      document.getElementById('scoreTag').innerText = `Skor: ${health.score}/100`;
+      document.getElementById('impactBodyText').innerText = health.impactSummary;
+      document.getElementById('statHeart').innerText = health.heartRateStatus;
+      document.getElementById('statKidney').innerText = health.kidneyStatus;
+      document.getElementById('statStomach').innerText = health.stomachStatus || 'Normal';
+      document.getElementById('statSodium').innerText = `±${(health.activeSodiumLoad || 0).toLocaleString('id-ID')} mg Aktif`;
+    }
+
+    function renderCalendarMatrix(year, month, dailyCounts) {
+      const matrix = document.getElementById('calMatrix');
+      matrix.innerHTML = '';
+
+      const firstDay = new Date(year, month - 1, 1).getDay();
+      const daysCount = new Date(year, month, 0).getDate();
+      const today = new Date();
+      const isCurrentMonth = (today.getFullYear() === year && (today.getMonth() + 1) === month);
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        matrix.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysCount; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+
+        const mStr = String(month).padStart(2, '0');
+        const dStr = String(d).padStart(2, '0');
+        const dateKey = `${year}-${mStr}-${dStr}`;
+        const count = dailyCounts[dateKey] || 0;
+
+        if (isCurrentMonth && today.getDate() === d) cell.classList.add('today');
+
+        if (count === 1) cell.classList.add('lvl-1');
+        else if (count === 2) cell.classList.add('lvl-2');
+        else if (count >= 3) cell.classList.add('lvl-3');
+
+        cell.innerHTML = `<span>${d}</span>`;
+        if (count > 0) {
+          const dot = document.createElement('span');
+          dot.className = 'cell-sub-dot';
+          dot.innerText = count > 1 ? `${count}x` : '•';
+          cell.appendChild(dot);
+        }
+
+        cell.onclick = () => openDateModal(dateKey, count);
+        matrix.appendChild(cell);
+      }
+    }
+
+    function formatDateIndo(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const dt = new Date(y, m, d);
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const dayName = days[dt.getDay()] || '';
+      const monthName = months[m] || '';
+      return `${dayName}, ${d} ${monthName} ${y}`;
+    }
+
+    function getCurrentWitaTime() {
+      try {
+        const parts = new Intl.DateTimeFormat('id-ID', {
+          timeZone: 'Asia/Makassar',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }).format(new Date()).split(':');
+        if (parts.length >= 2) return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+      } catch (e) {}
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function formatShortDateIndo(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return `${d} ${months[m] || ''}`;
+    }
+
+    function selectRetroType(type) {
+      selectedRetroType = type;
+      document.querySelectorAll('.retro-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+      });
+    }
+
+    function selectRetroPortion(portions) {
+      selectedRetroPortion = Number(portions);
+      document.querySelectorAll('.retro-portion-btn').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.getAttribute('data-portion')) === selectedRetroPortion);
+      });
+    }
+
+    function openDateModal(dateKey, count) {
+      selectedDateForSheet = dateKey;
+      document.getElementById('sheetDateTitle').innerText = formatDateIndo(dateKey);
+
+      const tagEl = document.getElementById('retroDateTag');
+      if (tagEl) tagEl.innerText = formatShortDateIndo(dateKey);
+
+      const content = document.getElementById('sheetContent');
+      const heading = document.getElementById('sheetContentHeading');
+      content.innerHTML = '';
+
+      const logsForDate = (currentStore && currentStore.dateLogs && currentStore.dateLogs[dateKey]) || [];
+
+      if (heading) {
+        heading.innerText = logsForDate.length > 0 
+          ? `CATATAN PADA TANGGAL INI (${logsForDate.length})` 
+          : `STATUS TANGGAL INI`;
+      }
+
+      if (logsForDate.length === 0) {
+        content.innerHTML = `
+          <div style="background:#F2F9F3; border:1px solid #D2E9D7; border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:10px;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#34C759" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <div style="display:flex; flex-direction:column; gap:1px;">
+              <span style="font-size:12px; font-weight:700; color:#1C6E33;">Bebas Mie (Hari Pemulihan)</span>
+              <span style="font-size:10.5px; color:#4B8359;">Tidak ada catatan mie pada tanggal ini.</span>
+            </div>
+          </div>`;
+      } else {
+        logsForDate.forEach(item => {
+          const typeName = item.type || 'Goreng';
+          const meta = TYPE_META[typeName] || TYPE_META['Goreng'];
+          const row = document.createElement('div');
+          row.className = 'history-row';
+          row.style.marginBottom = '4px';
+          row.innerHTML = `
+            <div class="hist-main">
+              <div class="hist-title-text">
+                <span class="type-pill ${meta.badgeClass}">${meta.name}</span>
+                <span>${item.portions} Bungkus</span>
+              </div>
+              <div class="hist-meta-text">Pukul ${item.time} WITA</div>
+            </div>
+            <button class="del-btn" onclick="handleDeleteLog('${item.id}')" title="Hapus Catatan">✕</button>
+          `;
+          content.appendChild(row);
+        });
+      }
+
+      // Reset form controls
+      selectRetroType('Goreng');
+      selectRetroPortion(1);
+      const timeInput = document.getElementById('retroTimeInput');
+      if (timeInput) timeInput.value = getCurrentWitaTime();
+
+      const btn = document.getElementById('btnSaveRetro');
+      const btnText = document.getElementById('btnSaveRetroText');
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.innerText = 'Simpan Makan Mie di Tanggal Ini';
+
+      document.getElementById('dateModalBackdrop').classList.add('open');
+    }
+
+    function closeDateModal(event) {
+      if (event && event.target && event.target.id !== 'dateModalBackdrop' && !event.target.classList.contains('sheet-close-btn')) {
+        return;
+      }
+      document.getElementById('dateModalBackdrop').classList.remove('open');
+    }
+
+    async function handleSaveRetroactive() {
+      if (!selectedDateForSheet) return;
+      const timeInput = document.getElementById('retroTimeInput');
+      const timeVal = (timeInput && timeInput.value) ? timeInput.value : '12:30';
+      const typeVal = selectedRetroType || 'Goreng';
+      const portionsVal = selectedRetroPortion || 1;
+
+      const btn = document.getElementById('btnSaveRetro');
+      const btnText = document.getElementById('btnSaveRetroText');
+      if (btn) btn.disabled = true;
+      if (btnText) btnText.innerText = 'Mencatat...';
+
+      showToast('Mencatat mie ke riwayat...', 'loading');
+
+      try {
+        const res = await ApiClient.request('log_manual', {
+          date: selectedDateForSheet,
+          time: timeVal,
+          type: typeVal,
+          portions: portionsVal
+        });
+
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerText = 'Simpan Makan Mie di Tanggal Ini';
+
+        if (res && res.success) {
+          showToast(res.message || 'Berhasil dicatat!', 'check');
+          if (res.data) {
+            renderApp(res.data);
+            const count = (res.data.dailyCounts && res.data.dailyCounts[selectedDateForSheet]) || 0;
+            openDateModal(selectedDateForSheet, count);
+          } else {
+            loadAllData();
+          }
+        } else {
+          showToast((res && res.message) || 'Gagal menyimpan catatan', 'alert');
+        }
+      } catch (err) {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerText = 'Simpan Makan Mie di Tanggal Ini';
+        if (err && err.message === 'BACKEND_NOT_CONFIGURED') {
+          openBackendModal();
+          showToast('Hubungkan Google Spreadsheet terlebih dahulu', 'alert');
+        } else {
+          showToast(err.message || 'Terjadi kesalahan sistem', 'error');
+        }
+      }
+    }
+
+    function renderHistoryList(logs) {
+      const container = document.getElementById('historyContainer');
+      document.getElementById('histCountLabel').innerText = `${logs.length} Catatan Terakhir`;
+
+      if (!logs || logs.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:22px 14px; color:var(--text-secondary); font-size:12.5px; background:#F8F8FA; border-radius:12px; border:1px dashed var(--border-subtle); line-height:1.5;">
+            Belum ada catatan konsumsi mie.<br>
+            <span style="font-size:11px; color:var(--text-tertiary);">Klik tombol <strong>"Makan Mie"</strong> di atas untuk mencatat porsi pertama Anda.</span>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      logs.forEach(log => {
+        const typeName = log.type || 'Goreng';
+        const meta = TYPE_META[typeName] || TYPE_META['Goreng'];
+        const row = document.createElement('div');
+        row.className = 'history-row';
+        row.innerHTML = `
+          <div class="hist-main">
+            <div class="hist-title-text">
+              <span class="type-pill ${meta.badgeClass}">${meta.name}</span>
+              <span>${log.portions} Porsi</span>
+            </div>
+            <div class="hist-meta-text">${log.date} • ${log.time} WITA</div>
+          </div>
+          <button class="del-btn" onclick="handleDeleteLog('${log.id}')" title="Hapus Catatan">✕</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    async function handleDeleteLog(id) {
+      if (!confirm('Hapus catatan makan mie ini?')) return;
+      showToast('Menghapus catatan...', 'loading');
+
+      try {
+        const res = await ApiClient.request('delete', { id });
+        if (res && res.success) {
+          showToast(res.message || 'Catatan berhasil dihapus', 'check');
+          closeDateModal();
+          if (res.data) renderApp(res.data);
+          else loadAllData();
+        } else {
+          showToast(res ? res.message : 'Gagal menghapus', 'alert');
+        }
+      } catch (err) {
+        console.error('Error deleting log:', err);
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
+
+    /* Biometrics Modal */
+    function openProfileModal() {
+      const modal = document.getElementById('profileModalBackdrop');
+      if (modal) modal.classList.add('open');
+      calculateLiveBmi();
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModalBackdrop');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function calculateLiveBmi() {
+      const weightEl = document.getElementById('profWeight');
+      const heightEl = document.getElementById('profHeight');
+      const w = Number(weightEl ? weightEl.value : 65) || 65;
+      const h = Number(heightEl ? heightEl.value : 170) || 170;
+      const hm = Math.max(0.5, h / 100);
+      let bmi = Number((w / (hm * hm)).toFixed(1));
+      if (!isFinite(bmi) || isNaN(bmi)) bmi = 22.5;
+
+      let cat = 'Normal Ideal';
+      if (bmi < 18.5) cat = 'Kurus';
+      else if (bmi >= 25 && bmi < 30) cat = 'Overweight';
+      else if (bmi >= 30) cat = 'Obesitas';
+
+      const previewEl = document.getElementById('liveBmiPreview');
+      if (previewEl) previewEl.innerText = `${bmi} • ${cat}`;
+    }
+
+    async function handleSaveProfile() {
+      const nameEl = document.getElementById('profName');
+      const ageEl = document.getElementById('profAge');
+      const genderEl = document.getElementById('profGender');
+      const weightEl = document.getElementById('profWeight');
+      const heightEl = document.getElementById('profHeight');
+
+      const profile = {
+        name: nameEl ? nameEl.value : 'Pengguna',
+        age: Number(ageEl ? ageEl.value : 25) || 25,
+        gender: genderEl ? genderEl.value : 'Pria',
+        weight: Number(weightEl ? weightEl.value : 65) || 65,
+        height: Number(heightEl ? heightEl.value : 170) || 170
+      };
+
+      closeProfileModal();
+      showToast('Menyimpan profil kesehatan...', 'loading');
+
+      try {
+        const res = await ApiClient.request('save_profile', { profile });
+        if (res && res.success) {
+          showToast(res.message || 'Profil berhasil disimpan', 'check');
+          if (res.data) renderApp(res.data);
+          else loadAllData();
+        } else {
+          showToast(res ? res.message : 'Gagal menyimpan', 'alert');
+        }
+      } catch (err) {
+        console.error('Error saving profile:', err);
+        showToast('Tersimpan di sesi lokal (Mode Offline)', 'check');
+        renderMockData(currentDate.getFullYear(), currentDate.getMonth() + 1);
+      }
+    }
+
+    /* Backend Connection Modal Handlers */
+    function openBackendModal() {
+      const modal = document.getElementById('backendModalBackdrop');
+      const input = document.getElementById('backendUrlInput');
+      if (input) input.value = ApiClient.getApiUrl();
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeBackendModal(event) {
+      if (event && event.target && event.target.id !== 'backendModalBackdrop' && !event.target.classList.contains('sheet-close-btn')) {
+        return;
+      }
+      const modal = document.getElementById('backendModalBackdrop');
+      if (modal) modal.classList.remove('open');
+    }
+
+    async function handleSaveBackendUrl() {
+      const input = document.getElementById('backendUrlInput');
+      const val = (input && input.value) ? input.value.trim() : '';
+      if (!val) {
+        showToast('Masukkan URL Apps Script Web App', 'alert');
+        return;
+      }
+      ApiClient.setApiUrl(val);
+      showToast('Menguji koneksi ke spreadsheet...', 'loading');
+      try {
+        const testRes = await ApiClient.request('get_data', { year: currentDate.getFullYear(), month: currentDate.getMonth() + 1 });
+        if (testRes && testRes.success) {
+          showToast('Koneksi Google Spreadsheet Berhasil!', 'check');
+          closeBackendModal();
+          checkBackendNotice();
+          renderApp(testRes);
+        } else {
+          showToast('Respon server: ' + ((testRes && testRes.message) || 'Format data salah'), 'alert');
+        }
+      } catch (err) {
+        console.error('Koneksi gagal:', err);
+        showToast('Koneksi gagal: pastikan akses Web App diset "Anyone"', 'alert');
+      }
+    }
+
+    function handleResetBackendUrl() {
+      ApiClient.setApiUrl('');
+      const input = document.getElementById('backendUrlInput');
+      if (input) input.value = '';
+      showToast('Koneksi backend direset ke lokal', 'check');
+      checkBackendNotice();
+    }
+
+    function checkBackendNotice() {
+      const banner = document.getElementById('backendNoticeBanner');
+      if (!banner) return;
+      if (!ApiClient.hasBackend()) {
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    function navMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      loadAllData();
+    }
+
+    function showToast(msg, icon = 'check') {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMsg');
+      const iconEl = document.getElementById('toastIcon');
+      if (msgEl) msgEl.innerText = msg;
+      if (iconEl) {
+        if (icon === 'check' || icon === '✅') {
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+        } else if (icon === 'alert' || icon === '⚠️') {
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FF9500" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+        } else if (icon === 'error' || icon === '❌') {
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+        } else if (icon === 'loading' || icon === '⏳') {
+          iconEl.innerHTML = `<svg class="toast-spin" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#007AFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+        } else {
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+        }
+      }
+      toast.classList.add('active');
+      setTimeout(() => toast.classList.remove('active'), 3200);
+    }
+
+    function renderMockData(year, month) {
+      const mockDays = {};
+      const today = new Date();
+      const tD = today.getDate();
+      const mStr = String(month).padStart(2, '0');
+
+      mockDays[`${year}-${mStr}-${String(tD).padStart(2, '0')}`] = 1;
+      if (tD > 2) mockDays[`${year}-${mStr}-${String(tD - 2).padStart(2, '0')}`] = 2;
+
+      renderApp({
+        success: true,
+        currentYear: year,
+        currentMonth: month,
+        profile: {
+          name: 'Siti Muliyani',
+          age: 25,
+          gender: 'Wanita',
+          weight: 65,
+          height: 162,
+          bmi: 24.8,
+          bmiCategory: 'Normal Ideal'
+        },
+        healthStatus: {
+          score: 68,
+          stageLevel: 3,
+          condition: 'caution',
+          title: 'Level 3: Waspada Awal (Pemulihan)',
+          subtitle: 'Proses eliminasi alami ginjal sedang berlangsung',
+          activeSodiumLoad: 720,
+          cumulativeSodium7Days: 2400,
+          cleanHours: 28,
+          cleanDays: 1,
+          daysToPrime: 2,
+          hoursToPrime: 29.1,
+          safeToEatHours: 29.1,
+          safeToEatReason: 'sodium',
+          hoursFromDecay: 29.1,
+          hoursFromWeekly: 0,
+          hoursFromMonthly: 0,
+          weeklyCount: 2,
+          monthlyCount: 4,
+          heartRateStatus: 'Stabil Normal (~72 bpm)',
+          kidneyStatus: 'Filtrasi Aktif Terkendali',
+          stomachStatus: 'Asam Lambung Mulai Stabil',
+          impactSummary: 'Anda makan mie 28 jam lalu. Ginjal telah berhasil membuang ±50% kelebihan natrium, namun masih tersisa ±720 mg yang sedang diproses dalam sirkulasi darah.',
+          recommendations: ['Perbanyak minum air putih.', 'Tubuh Anda butuh ±2 hari lagi untuk kembali ke Level 1 (Prima).'],
+          actionPlan: [
+            {
+              id: 'act-water',
+              icon: '💧',
+              badge: 'Prioritas Utama',
+              title: 'Hidrasi Aktif Pembilas Garam',
+              desc: 'Minum 2–3 gelas air putih hangat bertahap dalam 2 jam ke depan untuk membantu ginjal menyaring dan membuang kelebihan natrium melalui urine.'
+            },
+            {
+              id: 'act-potassium',
+              icon: '🍌',
+              badge: 'Penyeimbang Tensi',
+              title: 'Asupan Kalium Alami',
+              desc: 'Konsumsi 1 buah pisang atau air kelapa muda murni. Kalium bekerja menetralkan tekanan darah dan mencegah kram akibat retensi garam.'
+            },
+            {
+              id: 'act-stomach',
+              icon: '🍵',
+              badge: 'Perlindungan Lambung',
+              title: 'Cegah Refluks Asam & Begah (GERD)',
+              desc: 'Jangan langsung tidur atau berbaring minimal 2–3 jam setelah makan. Minum air hangat atau teh jahe untuk menenangkan lambung.'
+            },
+            {
+              id: 'act-walk',
+              icon: '🚶',
+              badge: 'Metabolik',
+              title: 'Jalan Santai 15 Menit',
+              desc: 'Jalan santai ringan untuk membantu otot menyerap lonjakan karbohidrat dan meredakan rasa kantuk berat.'
+            },
+            {
+              id: 'act-rest',
+              icon: '⏱️',
+              badge: 'Pemulihan Organ',
+              title: 'Puasa Mie Selama 2 Hari',
+              desc: 'Beri jeda istirahat 2 hari ke depan tanpa mie instan agar ginjal dan pembuluh darah dapat kembali ke kondisi Level 1 (Prima).'
+            }
+          ]
+        },
+        dailyCounts: mockDays,
+        dateLogs: {
+          [`${year}-${mStr}-${String(tD).padStart(2, '0')}`]: [{ id: '1', time: '12:30', type: 'Goreng', portions: 1 }]
+        },
+        recentLogs: [
+          { id: '1', date: `${year}-${mStr}-${String(tD).padStart(2, '0')}`, time: '12:30', type: 'Goreng', portions: 1 }
+        ]
+      });
+    }
+  </script>
+</body>
+</html>
