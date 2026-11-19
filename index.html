@@ -1235,12 +1235,6 @@
         <span>Noodle Tracker</span>
       </div>
       <div class="header-btns">
-        <button class="icon-btn" id="btnCloudConfig" onclick="openBackendModal()" title="Koneksi Google Spreadsheet">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
-            <path d="M12 12v5m-2-2 2 2 2-2"/>
-          </svg>
-        </button>
         <button class="profile-header-chip" id="btnHeaderProfile" onclick="openProfileModal()" title="Profil Kesehatan">
           <div class="profile-header-avatar">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1256,15 +1250,6 @@
 
     <!-- KONDISI TUBUH REAL-TIME & 3 JENIS MIE -->
     <div id="sectionOverview" class="page-section">
-
-      <!-- Banner Status Koneksi Google Sheets (Hanya muncul jika belum terhubung di PWA) -->
-      <div id="backendNoticeBanner" style="display:none; background:#EBF4FF; border:1px solid #BFDBFE; border-radius:14px; padding:11px 14px; font-size:12px; color:#1E40AF; line-height:1.45;">
-        <div style="font-weight:700; margin-bottom:2px; display:flex; align-items:center; gap:6px;">
-          <span>Hubungkan ke Google Spreadsheet</span>
-        </div>
-        <div style="color:#3B82F6; font-size:11.5px;">Aplikasi ini berjalan sebagai PWA. Sambungkan ke Web App Apps Script agar data tersimpan di Spreadsheet Anda.</div>
-        <button onclick="openBackendModal()" style="margin-top:7px; background:#007AFF; color:#fff; border:none; padding:5px 12px; border-radius:7px; font-size:11.5px; font-weight:600; cursor:pointer;">Hubungkan Sekarang</button>
-      </div>
       
       <!-- 1. Safe-To-Eat Primary Metric Card (Hero Status) -->
       <section class="apple-card hero-status-card" id="safeToEatBox">
@@ -1682,38 +1667,6 @@
     </div>
   </div>
 
-  <!-- Apple Modal Sheet for Google Apps Script Backend Connection -->
-  <div class="modal-backdrop" id="backendModalBackdrop" onclick="closeBackendModal(event)">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
-        <div class="sheet-title">Koneksi Spreadsheet Google</div>
-        <button class="sheet-close-btn" onclick="closeBackendModal()">✕</button>
-      </div>
-
-      <div style="background:#F2F2F7; border-radius:12px; padding:12px 14px; margin-bottom:14px; font-size:12px; line-height:1.5; color:var(--text-secondary);">
-        Hubungkan PWA ini dengan Google Spreadsheet Anda melalui Web App Google Apps Script. Data konsumsi & profil akan otomatis tersinkronisasi.
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Google Apps Script Web App URL</label>
-        <input type="url" id="backendUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
-        <span style="font-size:10.5px; color:var(--text-tertiary); margin-top:4px; display:block;">
-          Didapat dari: <em>Deploy &gt; New Deployment &gt; Web App &gt; Who has access: Anyone</em>
-        </span>
-      </div>
-
-      <div style="display:flex; gap:8px; margin-top:14px;">
-        <button class="action-button" style="flex:1; padding:11px 14px;" onclick="handleSaveBackendUrl()">
-          Simpan & Uji Koneksi
-        </button>
-        <button class="action-button" style="background:#E5E5EA; color:var(--text-primary); box-shadow:none; width:auto; padding:11px 14px;" onclick="handleResetBackendUrl()">
-          Reset
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Apple Toast -->
   <div class="apple-toast" id="toast">
     <span id="toastIcon" style="display:flex; align-items:center;">
@@ -1770,28 +1723,13 @@
 
     /**
      * UNIFIED API CLIENT
-     * Otomatis mendeteksi lingkungan:
+     * Otomatis terhubung langsung ke Google Spreadsheet:
      * - Jika di dalam Google Apps Script: Menggunakan google.script.run
-     * - Jika di-deploy sebagai PWA di GitHub Pages: Menggunakan REST API fetch() ke Apps Script Web App
+     * - Jika di GitHub Pages PWA: Menggunakan REST API fetch() ke SCRIPT_URL
      */
     const ApiClient = {
-      getApiUrl() {
-        const stored = localStorage.getItem('NOODLE_API_URL');
-        if (stored) return stored;
-        if (typeof SCRIPT_URL === 'string' && SCRIPT_URL.trim().startsWith('http')) {
-          return SCRIPT_URL.trim();
-        }
-        return '';
-      },
-      setApiUrl(url) {
-        if (url) localStorage.setItem('NOODLE_API_URL', url.trim());
-        else localStorage.removeItem('NOODLE_API_URL');
-      },
       isGasEnvironment() {
         return typeof google !== 'undefined' && Boolean(google.script) && Boolean(google.script.run);
-      },
-      hasBackend() {
-        return this.isGasEnvironment() || Boolean(this.getApiUrl());
       },
       async request(action, payload = {}) {
         if (this.isGasEnvironment()) {
@@ -1809,14 +1747,9 @@
           });
         }
 
-        const apiUrl = this.getApiUrl();
-        if (!apiUrl) {
-          throw new Error('BACKEND_NOT_CONFIGURED');
-        }
-
-        // POST request tanpa custom header Content-Type agar menghindari OPTIONS preflight CORS di Google Apps Script
+        // Direct fetch ke Web App Google Apps Script
         const bodyStr = JSON.stringify({ action, ...payload });
-        const resp = await fetch(apiUrl, {
+        const resp = await fetch(SCRIPT_URL, {
           method: 'POST',
           body: bodyStr,
           redirect: 'follow'
@@ -1826,8 +1759,7 @@
           throw new Error(`HTTP Error ${resp.status}`);
         }
 
-        const data = await resp.json();
-        return data;
+        return await resp.json();
       }
     };
 
@@ -1841,7 +1773,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      checkBackendNotice();
       loadAllData();
 
       // Auto-tick tiap 60 detik: recalculate decay lokal & countdown tanpa reload server
@@ -1943,14 +1874,9 @@
           else renderMockData(year, month);
         }
       } catch (err) {
-        if (err && err.message === 'BACKEND_NOT_CONFIGURED') {
-          checkBackendNotice();
-          renderMockData(year, month);
-        } else {
-          console.error('Error memuat data:', err);
-          showToast('Koneksi spreadsheet offline. Menampilkan data lokal.', 'alert');
-          renderMockData(year, month);
-        }
+        console.error('Error memuat data:', err);
+        showToast('Koneksi spreadsheet offline. Menampilkan data lokal.', 'alert');
+        renderMockData(year, month);
       }
     }
 
@@ -1977,13 +1903,8 @@
       } catch (err) {
         btn.classList.remove('loading');
         btnText.innerText = 'MAKAN MIE';
-        if (err && err.message === 'BACKEND_NOT_CONFIGURED') {
-          openBackendModal();
-          showToast('Silakan hubungkan Google Spreadsheet Anda', 'alert');
-        } else {
-          console.error('Error logging noodle:', err);
-          showToast('Gagal terhubung ke spreadsheet: ' + err.message, 'error');
-        }
+        console.error('Error logging noodle:', err);
+        showToast('Gagal terhubung ke spreadsheet: ' + err.message, 'error');
       }
     }
 
@@ -2434,12 +2355,7 @@
       } catch (err) {
         if (btn) btn.disabled = false;
         if (btnText) btnText.innerText = 'Simpan Makan Mie di Tanggal Ini';
-        if (err && err.message === 'BACKEND_NOT_CONFIGURED') {
-          openBackendModal();
-          showToast('Hubungkan Google Spreadsheet terlebih dahulu', 'alert');
-        } else {
-          showToast(err.message || 'Terjadi kesalahan sistem', 'error');
-        }
+        showToast(err.message || 'Terjadi kesalahan sistem', 'error');
       }
     }
 
@@ -2557,65 +2473,6 @@
         console.error('Error saving profile:', err);
         showToast('Tersimpan di sesi lokal (Mode Offline)', 'check');
         renderMockData(currentDate.getFullYear(), currentDate.getMonth() + 1);
-      }
-    }
-
-    /* Backend Connection Modal Handlers */
-    function openBackendModal() {
-      const modal = document.getElementById('backendModalBackdrop');
-      const input = document.getElementById('backendUrlInput');
-      if (input) input.value = ApiClient.getApiUrl();
-      if (modal) modal.classList.add('open');
-    }
-
-    function closeBackendModal(event) {
-      if (event && event.target && event.target.id !== 'backendModalBackdrop' && !event.target.classList.contains('sheet-close-btn')) {
-        return;
-      }
-      const modal = document.getElementById('backendModalBackdrop');
-      if (modal) modal.classList.remove('open');
-    }
-
-    async function handleSaveBackendUrl() {
-      const input = document.getElementById('backendUrlInput');
-      const val = (input && input.value) ? input.value.trim() : '';
-      if (!val) {
-        showToast('Masukkan URL Apps Script Web App', 'alert');
-        return;
-      }
-      ApiClient.setApiUrl(val);
-      showToast('Menguji koneksi ke spreadsheet...', 'loading');
-      try {
-        const testRes = await ApiClient.request('get_data', { year: currentDate.getFullYear(), month: currentDate.getMonth() + 1 });
-        if (testRes && testRes.success) {
-          showToast('Koneksi Google Spreadsheet Berhasil!', 'check');
-          closeBackendModal();
-          checkBackendNotice();
-          renderApp(testRes);
-        } else {
-          showToast('Respon server: ' + ((testRes && testRes.message) || 'Format data salah'), 'alert');
-        }
-      } catch (err) {
-        console.error('Koneksi gagal:', err);
-        showToast('Koneksi gagal: pastikan akses Web App diset "Anyone"', 'alert');
-      }
-    }
-
-    function handleResetBackendUrl() {
-      ApiClient.setApiUrl('');
-      const input = document.getElementById('backendUrlInput');
-      if (input) input.value = '';
-      showToast('Koneksi backend direset ke lokal', 'check');
-      checkBackendNotice();
-    }
-
-    function checkBackendNotice() {
-      const banner = document.getElementById('backendNoticeBanner');
-      if (!banner) return;
-      if (!ApiClient.hasBackend()) {
-        banner.style.display = 'block';
-      } else {
-        banner.style.display = 'none';
       }
     }
 
