@@ -73,9 +73,11 @@
       color: var(--text-primary);
       line-height: 1.45;
       padding: clamp(10px, 3vw, 18px);
+      padding-bottom: calc(96px + env(safe-area-inset-bottom, 20px));
       width: 100%;
       min-height: 100vh;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     .app-container {
@@ -990,7 +992,7 @@
     .del-btn:hover { color: var(--apple-red); }
 
     /* Modal Sheet */
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(4px); z-index: 998; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(4px); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
     .modal-backdrop.open { opacity: 1; pointer-events: auto; }
     .modal-sheet {
       position: fixed;
@@ -1209,12 +1211,147 @@
       transform: none;
     }
 
-    .apple-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1D1D1F; color: #FFFFFF; padding: 10px 18px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; }
+    .apple-toast { position: fixed; bottom: calc(88px + env(safe-area-inset-bottom, 16px)); left: 50%; transform: translateX(-50%) translateY(100px); background: #1D1D1F; color: #FFFFFF; padding: 10px 18px; border-radius: 30px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 2500; }
     .apple-toast.active { transform: translateX(-50%) translateY(0); opacity: 1; }
     @keyframes toastSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .toast-spin { animation: toastSpin 1s linear infinite; }
 
-    .page-section { display: flex; flex-direction: column; gap: 14px; }
+        .page-section {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      animation: iosFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .page-section.active {
+      display: flex;
+    }
+    @keyframes iosFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* iOS Native Bottom Tab Bar (UITabBar) */
+    .ios-tabbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 900;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(24px) saturate(190%);
+      -webkit-backdrop-filter: blur(24px) saturate(190%);
+      border-top: 0.5px solid rgba(0, 0, 0, 0.12);
+      box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
+      padding-bottom: env(safe-area-inset-bottom, 10px);
+    }
+    .ios-tabbar-inner {
+      max-width: 480px;
+      margin: 0 auto;
+      height: 58px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 68px 1fr 1fr;
+      align-items: center;
+      padding: 0 4px;
+      position: relative;
+    }
+    .ios-tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      padding: 6px 0 2px;
+      color: #8E8E93;
+      cursor: pointer;
+      text-decoration: none;
+      outline: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.18s ease, transform 0.12s ease;
+    }
+    .ios-tab-btn:active {
+      transform: scale(0.92);
+    }
+    .ios-tab-btn.active {
+      color: var(--apple-blue);
+    }
+    .ios-tab-btn.active .ios-tab-icon svg {
+      stroke: var(--apple-blue);
+      stroke-width: 2.3;
+    }
+    .ios-tab-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ios-tab-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: -0.1px;
+      line-height: 1;
+    }
+    .ios-tab-btn.active .ios-tab-label {
+      font-weight: 600;
+    }
+
+    /* Center Floating Action Button (Makan Mie) */
+    .ios-center-btn-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      top: -14px;
+    }
+    .ios-center-round-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #FF453A 0%, #D70015 100%);
+      color: #FFFFFF;
+      border: 3.5px solid #FFFFFF;
+      box-shadow: 0 5px 16px rgba(215, 0, 21, 0.42), 0 2px 6px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.15s ease;
+    }
+    .ios-center-round-btn:active {
+      transform: scale(0.91);
+      box-shadow: 0 2px 8px rgba(215, 0, 21, 0.35);
+      filter: brightness(0.95);
+    }
+    .ios-center-round-btn.loading {
+      pointer-events: none;
+      opacity: 0.88;
+    }
+    .ios-center-round-btn.loading .ios-center-icon {
+      animation: toastSpin 0.9s linear infinite;
+    }
+    .ios-center-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ios-center-label {
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      margin-top: 1px;
+      line-height: 1;
+    }
   </style>
 </head>
 <body>
@@ -1249,7 +1386,7 @@
 
 
     <!-- KONDISI TUBUH REAL-TIME & 3 JENIS MIE -->
-    <div id="sectionOverview" class="page-section">
+    <div id="sectionOverview" class="page-section active">
       
       <!-- 1. Safe-To-Eat Primary Metric Card (Hero Status) -->
       <section class="apple-card hero-status-card" id="safeToEatBox">
@@ -1441,12 +1578,25 @@
         </div>
       </section>
 
-      <!-- DEDICATED ACTION PLAN: TINDAKAN & SOLUSI PENANGANAN -->
+    </div>
+
+    <!-- TAB 2: DEDICATED ACTION PLAN: TINDAKAN & SOLUSI PENANGANAN -->
+    <div id="sectionAction" class="page-section">
       <section class="apple-card" id="actionPlanCard">
         <div class="card-title-row">
-          <span class="card-title">Tindakan & Solusi Penanganan</span>
-          <span style="font-size:11px; font-weight:700; color:var(--apple-blue);" id="actionPlanProgress">0/5 Selesai</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <span class="card-title">Tindakan & Solusi Pemulihan</span>
+          </div>
+          <span style="font-size:11.5px; font-weight:700; color:var(--apple-blue);" id="actionPlanProgress">0/5 Selesai</span>
         </div>
+
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px; line-height:1.45;">
+          Protokol pemulihan medis bertahap berdasarkan tingkat natrium dan beban organ tubuh Anda saat ini.
+        </p>
 
         <!-- Emergency Alert Banner (Only active on Level 5 & 6) -->
         <div id="emergencyNoticeBox" style="display:none; background:#FEECEB; border:1px solid #FF3B30; border-radius:12px; padding:11px 13px; margin-bottom:12px; font-size:11.5px; color:#D70015; line-height:1.45;">
@@ -1506,6 +1656,73 @@
     </div>
 
   </div>
+
+  <!-- iOS Native Bottom Tab Bar (UITabBar) with Center Action Button -->
+  <nav class="ios-tabbar" aria-label="Navigasi Utama">
+    <div class="ios-tabbar-inner">
+      <!-- Tab 1: Kondisi -->
+      <button type="button" class="ios-tab-btn active" id="tabBtnOverview" onclick="switchIosTab('overview')" aria-label="Tab Kondisi">
+        <span class="ios-tab-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </span>
+        <span class="ios-tab-label">Kondisi</span>
+      </button>
+
+      <!-- Tab 2: Tindakan -->
+      <button type="button" class="ios-tab-btn" id="tabBtnAction" onclick="switchIosTab('action')" aria-label="Tab Tindakan">
+        <span class="ios-tab-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+        </span>
+        <span class="ios-tab-label">Tindakan</span>
+      </button>
+
+      <!-- Center Floating Button: Makan Mie -->
+      <div class="ios-center-btn-wrap">
+        <button type="button" class="ios-center-round-btn" id="btnLogNoodleFloating" onclick="handleLogNoodle()" title="Makan Mie Sekarang" aria-label="Makan Mie">
+          <span class="ios-center-icon" id="floatBtnIcon">
+            <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 11c0 5 3.5 8 8 8s8-3 8-8H4z"/>
+              <path d="M8 19h8"/>
+              <path d="M7 6c1 1 1 2 0 3"/>
+              <path d="M12 5c1 1.5 1 2.5 0 4"/>
+              <path d="M17 6c1 1 1 2 0 3"/>
+              <path d="M18 4l-4 4"/>
+            </svg>
+          </span>
+          <span class="ios-center-label" id="floatBtnText">Makan</span>
+        </button>
+      </div>
+
+      <!-- Tab 3: Kalender -->
+      <button type="button" class="ios-tab-btn" id="tabBtnCalendar" onclick="switchIosTab('calendar')" aria-label="Tab Kalender">
+        <span class="ios-tab-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </span>
+        <span class="ios-tab-label">Kalender</span>
+      </button>
+
+      <!-- Tab 4: Riwayat -->
+      <button type="button" class="ios-tab-btn" id="tabBtnHistory" onclick="switchIosTab('history')" aria-label="Tab Riwayat">
+        <span class="ios-tab-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </span>
+        <span class="ios-tab-label">Riwayat</span>
+      </button>
+    </div>
+  </nav>
 
   <!-- Apple Modal Sheet for Profile Biometrics Editing -->
   <div class="modal-backdrop" id="profileModalBackdrop" onclick="closeProfileModal(event)">
@@ -1880,29 +2097,77 @@
       }
     }
 
+    function switchIosTab(tabId) {
+      const sections = {
+        'overview': document.getElementById('sectionOverview'),
+        'action': document.getElementById('sectionAction'),
+        'calendar': document.getElementById('sectionCalendar'),
+        'history': document.getElementById('sectionHistory')
+      };
+
+      const tabBtns = {
+        'overview': document.getElementById('tabBtnOverview'),
+        'action': document.getElementById('tabBtnAction'),
+        'calendar': document.getElementById('tabBtnCalendar'),
+        'history': document.getElementById('tabBtnHistory')
+      };
+
+      Object.keys(sections).forEach(key => {
+        if (sections[key]) {
+          if (key === tabId) {
+            sections[key].classList.add('active');
+          } else {
+            sections[key].classList.remove('active');
+          }
+        }
+      });
+
+      Object.keys(tabBtns).forEach(key => {
+        if (tabBtns[key]) {
+          if (key === tabId) {
+            tabBtns[key].classList.add('active');
+          } else {
+            tabBtns[key].classList.remove('active');
+          }
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     async function handleLogNoodle() {
       const btn = document.getElementById('btnLogNoodle');
       const btnText = document.getElementById('btnText');
+      const floatBtn = document.getElementById('btnLogNoodleFloating');
+      const floatText = document.getElementById('floatBtnText');
       const portions = Number(document.getElementById('noodlePortion').value) || 1;
 
-      btn.classList.add('loading');
-      btnText.innerText = 'MENCATAT...';
+      if (btn) btn.classList.add('loading');
+      if (btnText) btnText.innerText = 'MENCATAT...';
+      if (floatBtn) floatBtn.classList.add('loading');
+      if (floatText) floatText.innerText = 'PROSES';
 
       try {
         const res = await ApiClient.request('log', { type: selectedType, portions });
-        btn.classList.remove('loading');
-        btnText.innerText = 'MAKAN MIE';
+        if (btn) btn.classList.remove('loading');
+        if (btnText) btnText.innerText = 'MAKAN MIE';
+        if (floatBtn) floatBtn.classList.remove('loading');
+        if (floatText) floatText.innerText = 'MAKAN';
 
         if (res && res.success) {
           showToast(res.message || 'Catatan berhasil disimpan', 'check');
+          // Otomatis beralih ke tab Kondisi agar langsung melihat timer & indikator pemulihan tubuh
+          switchIosTab('overview');
           if (res.data) renderApp(res.data);
           else loadAllData();
         } else {
           showToast(res ? res.message : 'Gagal mencatat', 'alert');
         }
       } catch (err) {
-        btn.classList.remove('loading');
-        btnText.innerText = 'MAKAN MIE';
+        if (btn) btn.classList.remove('loading');
+        if (btnText) btnText.innerText = 'MAKAN MIE';
+        if (floatBtn) floatBtn.classList.remove('loading');
+        if (floatText) floatText.innerText = 'MAKAN';
         console.error('Error logging noodle:', err);
         showToast('Gagal terhubung ke spreadsheet: ' + err.message, 'error');
       }
