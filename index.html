@@ -1725,6 +1725,12 @@
   </div>
 
   <script>
+    // ====================================================================
+    // 🔗 KONFIGURASI BACKEND OTOMATIS (GOOGLE APPS SCRIPT WEB APP)
+    // ====================================================================
+    // URL Web App Apps Script Anda sudah terpasang permanen:
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhaGmcdiIrY2hhA12GxkFj3qKPGxJTRx1AHrIW_iQApoT8MmysHrhBORnTp7swoeFd/exec';
+
     let currentDate = new Date();
     let currentStore = null;
     let selectedDateForSheet = null;
@@ -1770,7 +1776,12 @@
      */
     const ApiClient = {
       getApiUrl() {
-        return localStorage.getItem('NOODLE_API_URL') || '';
+        const stored = localStorage.getItem('NOODLE_API_URL');
+        if (stored) return stored;
+        if (typeof SCRIPT_URL === 'string' && SCRIPT_URL.trim().startsWith('http')) {
+          return SCRIPT_URL.trim();
+        }
+        return '';
       },
       setApiUrl(url) {
         if (url) localStorage.setItem('NOODLE_API_URL', url.trim());
